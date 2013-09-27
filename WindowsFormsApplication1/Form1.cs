@@ -14,26 +14,31 @@ namespace WindowsFormsApplication1
 
     public partial class Form1 : Form
     {
-       
         public Form1()
         {
             InitializeComponent();
-            if (File.Exists(FILE_NAME))
+            
+            if (File.Exists(USER_FILE_NAME))
             {
-                FileStream fsIn = new FileStream(FILE_NAME, FileMode.Open,
-                FileAccess.Read, FileShare.Read);
+                FileStream fsIn = new FileStream(USER_FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.None);
                 users = new SelfBalancedTree.AVLTree<User>();
                 using (StreamReader sr = new StreamReader(fsIn))
                 {
                     string input;
+                    input = sr.ReadLine();
                     // While not at the end of the file, read lines from the file. 
-                    while (sr.Peek() > -1)
+                    while (input == "USER")
                     {
                         input = sr.ReadLine();
                         User newUser = new User();
                         newUser.setName(ref input);
                         input = sr.ReadLine();
                         newUser.setId(input);
+                        input = sr.ReadLine();
+                        if (input != "USER"&& input != null)
+                        {
+                            newUser.setRfid(input);
+                        }
                         users.Add(newUser);
                     }
                 }
@@ -42,64 +47,173 @@ namespace WindowsFormsApplication1
 
         private void OK_Click(object sender, EventArgs e)
         {
-            
-            
+
+
             User current = new User();
             DateTime currentTime = new DateTime();
             currentTime = DateTime.Now;
             //currentTime.ToLocalTime();
-            current.setId(id);
-            if (users.Contains(current))
+            current.setId(idSearch);
+            if (users.Contains(current))//slow search
             {
-                User temp = users.publicSearch(current);
-                    string name = "";
-                    temp.getName(ref name);
-                    current.setName(ref name);
-            }
-            
-            IDField.Text = "";
-            IDField.Update();
-            if (!currentlyIn.Contains(current) && users.Contains(current))
-            {
-                current.setTimeIn(currentTime);
-                currentlyIn.Add(current);
-            }
-            else if (currentlyIn.Contains(current))
-            {
-                current = (User)currentlyIn.publicSearch(current);
-                currentlyIn.Delete(current);
-                current.setTimeOut(currentTime);
-                //store log
+                User temp = users.publicSearch(current);//slow search
+                string name = "";
+                string rfid = "";
+                temp.getName(ref name);
+                temp.getRfid(ref rfid);
+                current.setRfid(rfid);
+                current.setName(ref name);
+                if (!currentlyIn.Contains(current))
+                {
+                    current.setTimeIn(currentTime);
+                    currentlyIn.Add(current);
+                }
+                else if (currentlyIn.Contains(current))
+                {
+                    current = (User)currentlyIn.publicSearch(current);
+                    currentlyIn.Delete(current);
+                    current.setTimeOut(currentTime);
+                    
+                    int workHours = current.timeOut.Hour-current.timeIn.Hour;
+                    int workMinutes = current.timeOut.Minute - current.timeIn.Minute;
+                    FileStream fsLog;
+                    bool fileExisted = true;
+                    try
+                    {
+                       fsLog = new FileStream(LOG_FILE_NAME, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+                    }
+                    catch
+                    {
+                        fileExisted = false;
+                        fsLog = new FileStream(LOG_FILE_NAME, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+                    }
+                    string newLine = "";
+                    string line = "";
+                    if (fileExisted)
+                    {
+                        using (StreamReader sr2 = new StreamReader(fsLog))
+                        {
+                            line = sr2.ReadLine();
+                            string check = "";
+                            current.getName(ref check);
+
+                            // While not at the end of the file, read lines from the file. 
+                            while (line != "" && !line.StartsWith(check) && String.Compare(line,check) < 0) 
+                                line = sr2.ReadLine();
+                            if (check == line.Substring(0, check.Length))
+                            {
+                                //if found
+                                newLine = line.Substring(0, check.Length + 1);
+                                string hours = line.Substring(check.Length + 1, 2);
+                                string minutes = line.Substring(line.IndexOf(':') + 1, 2);
+
+                                workHours += (hours[0]-'0') * 10 + (hours[1]-'0');
+                                workMinutes += (minutes[0]-'0') * 10 + minutes[1]-'0';
+
+                                while (workMinutes >= 60)
+                                {
+                                    workHours++;
+                                    workMinutes -= 60;
+                                }
+                                if (workHours < 10)
+                                {
+                                    newLine += '0';
+                                }
+                                else
+                                {
+                                    newLine += workHours / 10;
+                                }
+                                newLine += workHours % 10;
+                                newLine += ":";
+                                if (workMinutes < 10)
+                                {
+                                    newLine +='0';
+                                }
+                                else
+                                {
+                                    newLine += workMinutes / 10;
+                                }
+                                newLine += workMinutes % 10;
+                                newLine += ",";
+                                newLine += line.Substring(line.IndexOf(':')+4);
+                                newLine += current.timeIn.ToString().Substring(current.timeIn.ToString().IndexOf(' ')+1,5);
+                                newLine += "/";
+                                newLine += current.timeOut.ToString().Substring(current.timeOut.ToString().IndexOf(' ')+1,5);
+                                newLine += ",";
+                            }      
+                        }
+                    }
+                    else //file log not stored yet today
+                    {
+                        newLine = "";
+                                current.getName(ref newLine);
+                                newLine += ",";
+
+                                while (workMinutes >= 60)
+                                {
+                                    workHours++;
+                                    workMinutes -= 60;
+                                }
+
+                                if (workHours < 10)
+                                {
+                                    newLine += '0';
+                                }
+                                else
+                                {
+                                    newLine += workHours / 10 + '0';
+                                }
+                                newLine += workHours % 10;// +'0';
+                                newLine += ":";
+                                if (workMinutes < 10)
+                                {
+                                    newLine += '0';
+                                }
+                                else
+                                {
+                                    newLine += workMinutes / 10;// +'0';
+                                }
+                                newLine += workMinutes % 10;// +'0';
+                                newLine += ",";
+                                newLine += current.timeIn.ToString().Substring(current.timeIn.ToString().IndexOf(' ')+1);
+                                newLine += "/";
+                                newLine += current.timeOut.ToString().Substring(current.timeOut.ToString().IndexOf(' ')+1);
+                                newLine += ",";
+                            
+                    }
+                    fsLog.Close();
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(LOG_FILE_NAME))//precondition - newLine contains name, workhours:workMinutes, ...
+                    { 
+                        file.WriteLine(newLine);//store log
+                    }
+                }
             }
             else
             {
                 MessageBox.Show("Please either retry or see system administrator for help", "User not recognized.", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk);
             }
+            IDField.Text = "";
+            IDField.Update();
         }
 
         private void ID_TextChanged(object sender, EventArgs e)
         {
-             IDField.PasswordChar = '*';
-             id = IDField.Text;
+            IDField.PasswordChar = '*';
+            idSearch = IDField.Text;
         }
-
-        private DateTime time;
-        public string id;
-        private SelfBalancedTree.AVLTree<User> currentlyIn = new SelfBalancedTree.AVLTree<User>();
-        private SelfBalancedTree.AVLTree<User> users;
-        private const string FILE_NAME = "Users.dat";
-
         
 
-        private void Enter(object sender, ControlEventArgs e)
-        {
-            OK.Select();
-        }
+        private DateTime time;
+        public string idSearch;
+        private SelfBalancedTree.AVLTree<User> currentlyIn = new SelfBalancedTree.AVLTree<User>();
+        private SelfBalancedTree.AVLTree<User> users;
+        private const string USER_FILE_NAME = "Users.dat";
+        private const string LOG_FILE_NAME = "log.csv";
 
     }
 
 
-    class User: IComparable<User>
+    class User : IComparable<User>
     {
         public void getName(ref String nameGet)
         {
@@ -111,7 +225,7 @@ namespace WindowsFormsApplication1
         }
         public void setId(String newId)
         {
-           ID = newId;
+            ID = newId;
         }
         public void setTimeIn(DateTime newTimeIn)
         {
@@ -129,10 +243,17 @@ namespace WindowsFormsApplication1
         {
             outputID = ID;
         }
-        private string name;
-        private string ID;
-        private DateTime timeIn, timeOut;
-       public int CompareTo(User input)
+        public void setRfid(string newRfid)
+        {
+            rfid = newRfid;
+        }
+        public void getRfid(ref string newRfid)
+        {
+            newRfid = rfid;
+        }
+        private string name, ID, rfid;
+        public DateTime timeIn, timeOut;
+        public int CompareTo(User input)
         {
             int result;
             if (this.ID == input.ID)
@@ -142,7 +263,7 @@ namespace WindowsFormsApplication1
             else result = String.Compare(this.ID, input.ID);
             return result;
 
-        
+
         }
     }
 }

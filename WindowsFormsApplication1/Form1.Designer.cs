@@ -34,7 +34,7 @@
             // 
             // IDField
             // 
-            this.IDField.Location = new System.Drawing.Point(11, 15);
+            this.IDField.Location = new System.Drawing.Point(115, 40);
             this.IDField.Name = "IDField";
             this.IDField.Size = new System.Drawing.Size(201, 20);
             this.IDField.TabIndex = 0;
@@ -44,7 +44,7 @@
             // 
             this.OK.FlatAppearance.BorderColor = System.Drawing.Color.Red;
             this.OK.FlatAppearance.MouseOverBackColor = System.Drawing.Color.White;
-            this.OK.Location = new System.Drawing.Point(230, 13);
+            this.OK.Location = new System.Drawing.Point(379, 40);
             this.OK.Name = "OK";
             this.OK.Size = new System.Drawing.Size(45, 21);
             this.OK.TabIndex = 1;
@@ -52,15 +52,14 @@
             this.OK.UseCompatibleTextRendering = true;
             this.OK.UseVisualStyleBackColor = true;
             this.OK.Click += new System.EventHandler(this.OK_Click);
-            this.OK.ControlAdded += new System.Windows.Forms.ControlEventHandler(this.Enter);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 262);
-            this.Controls.Add(this.OK);
+            this.ClientSize = new System.Drawing.Size(521, 393);
             this.Controls.Add(this.IDField);
+            this.Controls.Add(this.OK);
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);
