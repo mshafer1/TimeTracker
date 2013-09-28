@@ -240,6 +240,11 @@ namespace SelfBalancedTree
         {
             return this.Search(this.Root, arg) != null;
         }
+
+        public bool slowContains(T arg)
+        {
+            return this.slowSearch(this.Root, arg) != null;
+        }
         //public bool slowContains(T arg)
         //{
         //    return this.
@@ -375,6 +380,13 @@ namespace SelfBalancedTree
         {
             Node<T> result = Search(Root, data);
             data =  result.Data;
+            return data;
+        }
+
+        public T publicSlowSearch(T data)
+        {
+            Node<T> result = slowSearch(Root, data);
+            data = result.Data;
             return data;
         }
 
@@ -750,6 +762,34 @@ namespace SelfBalancedTree
             }
 
             return node;
+        }
+
+        private Node<T> slowSearch(Node<T> subtree, T data)
+        {
+            Node<T> result = null;
+            if (subtree != null)
+            {
+                if (this.comparer.Compare(data, subtree.Data) == 0)
+                {
+                    result = subtree;
+                }
+                else
+                {
+                    if (subtree.Left != null)
+                    {
+                        result = this.slowSearch(subtree.Left, data);
+                    }
+                    if (subtree.Right != null && result == null)
+                    {
+                        result = this.slowSearch(subtree.Right, data);
+                    }
+                }
+            }
+            else
+            {
+                result =  null;
+            }
+            return result;
         }
 
         /// <summary>

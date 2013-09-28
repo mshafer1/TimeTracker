@@ -17,7 +17,10 @@ namespace WindowsFormsApplication1
         public Form1()
         {
             InitializeComponent();
-
+            DateTime current = DateTime.Now;
+            LOG_FILE_NAME = current.ToShortDateString();
+            LOG_FILE_NAME = LOG_FILE_NAME.Replace("/", ".");
+            LOG_FILE_NAME += ".csv";
             if (File.Exists(USER_FILE_NAME))
             {
                 FileStream fsIn = new FileStream(USER_FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.None);
@@ -27,21 +30,34 @@ namespace WindowsFormsApplication1
                     string input;
                     input = sr.ReadLine();
                     // While not at the end of the file, read lines from the file. 
-                    while (input == "USER")
+                    while (input == "USER" || input == "ADMIN")
                     {
-                        input = sr.ReadLine();
                         User newUser = new User();
+                        if (input == "ADMIN")
+                        {
+                            newUser.setAdmin();
+                        }
+                        else
+                        {
+                            newUser.notAdmin();
+                        }
+
+                        input = sr.ReadLine();
                         newUser.setName(ref input);
+
                         input = sr.ReadLine();
                         newUser.setId(input);
+
                         input = sr.ReadLine();
                         if (input != "USER" && input != null)
                         {
                             newUser.setRfid(input);
+                            input = sr.ReadLine();
                         }
                         users.Add(newUser);
                     }
                 }
+                fsIn.Close();
             }
             else
             {
@@ -56,141 +72,162 @@ namespace WindowsFormsApplication1
             currentTime = DateTime.Now;
             //currentTime.ToLocalTime();
             current.setId(idSearch);
-            if (users != null && users.Contains(current))//slow search
+            if (users != null && users.slowContains(current))//slow search
             {
-                User temp = users.publicSearch(current);//slow search
+                User temp = users.publicSlowSearch(current);//slow search
                 string name = "";
                 string rfid = "";
                 temp.getName(ref name);
                 temp.getRfid(ref rfid);
                 current.setRfid(rfid);
                 current.setName(ref name);
-                if (!currentlyIn.Contains(current))
+                current.controlAdmin(temp.isAdmin());
+                if (current.isAdmin())
                 {
-                    current.setTimeIn(currentTime);
-                    currentlyIn.Add(current);
-                }
-                else if (currentlyIn.Contains(current))
-                {
-                    current = (User)currentlyIn.publicSearch(current);
-                    currentlyIn.Delete(current);
-                    current.setTimeOut(currentTime);
                     
-                    int workHours = current.timeOut.Hour-current.timeIn.Hour;
-                    int workMinutes = current.timeOut.Minute - current.timeIn.Minute;
-                    FileStream fsLog;
-                    bool fileExisted = true;
-                    try
+                    DialogResult dialogResult = MessageBox.Show("Sure", "Some Title", MessageBoxButtons.YesNo);
+                    if (dialogResult == DialogResult.Yes)
                     {
-                       fsLog = new FileStream(LOG_FILE_NAME, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+                        //do something
                     }
-                    catch
+                    else if (dialogResult == DialogResult.No)
                     {
-                        fileExisted = false;
-                        fsLog = new FileStream(LOG_FILE_NAME, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+                        //do something else
                     }
-                    string newLine = "";
-                    string line = "";
-                    if (fileExisted)
+                }
+                else
+                {
+                    if (!currentlyIn.Contains(current))
                     {
-                        using (StreamReader sr2 = new StreamReader(fsLog))
+                        current.setTimeIn(currentTime);
+                        currentlyIn.Add(current);
+                    }
+                    else if (currentlyIn.Contains(current))
+                    {
+                        current = (User)currentlyIn.publicSearch(current);
+                        currentlyIn.Delete(current);
+                        current.setTimeOut(currentTime);
+
+                        int workHours = current.timeOut.Hour - current.timeIn.Hour;
+                        int workMinutes = current.timeOut.Minute - current.timeIn.Minute;
+                        FileStream fsLog;
+                        bool fileExisted = true;
+                        try
                         {
-                            line = sr2.ReadLine();
-                            string check = "";
-                            current.getName(ref check);
-
-                            // While not at the end of the file, read lines from the file. 
-                            while (line != "" && !line.StartsWith(check) && String.Compare(line,check) < 0) 
-                                line = sr2.ReadLine();
-                            if (check == line.Substring(0, check.Length))
-                            {
-                                //if found
-                                newLine = line.Substring(0, check.Length + 1);
-                                string hours = line.Substring(check.Length + 1, 2);
-                                string minutes = line.Substring(line.IndexOf(':') + 1, 2);
-
-                                workHours += (hours[0]-'0') * 10 + (hours[1]-'0');
-                                workMinutes += (minutes[0]-'0') * 10 + minutes[1]-'0';
-
-                                while (workMinutes >= 60)
-                                {
-                                    workHours++;
-                                    workMinutes -= 60;
-                                }
-                                if (workHours < 10)
-                                {
-                                    newLine += '0';
-                                }
-                                else
-                                {
-                                    newLine += workHours / 10;
-                                }
-                                newLine += workHours % 10;
-                                newLine += ":";
-                                if (workMinutes < 10)
-                                {
-                                    newLine +='0';
-                                }
-                                else
-                                {
-                                    newLine += workMinutes / 10;
-                                }
-                                newLine += workMinutes % 10;
-                                newLine += ",";
-                                newLine += line.Substring(line.IndexOf(':')+4);
-                                int index = current.timeIn.ToString().IndexOf(' ');
-                                int index2 = current.timeIn.ToString().LastIndexOf(' ');
-                                newLine += current.timeIn.ToString().Substring(index,index2-index+1-4);
-                                newLine += "/";
-                                index = current.timeOut.ToString().IndexOf(' ');
-                                index2 = current.timeOut.ToString().LastIndexOf(' ');
-                                newLine += current.timeOut.ToString().Substring(index,index2-index+1-4);
-                                newLine += ",";
-                            }      
+                            fsLog = new FileStream(LOG_FILE_NAME, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
                         }
-                    }
-                    else //file log not stored yet today
-                    {
-                        newLine = "";
-                                current.getName(ref newLine);
-                                newLine += ",";
+                        catch
+                        {
+                            fileExisted = false;
+                            fsLog = new FileStream(LOG_FILE_NAME, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+                        }
+                        string newLine = "";
+                        string line = "";
+                        if (fileExisted)
+                        {
+                            using (StreamReader sr2 = new StreamReader(fsLog))
+                            {
+                                line = sr2.ReadLine();
+                                string check = "";
+                                current.getName(ref check);
 
-                                while (workMinutes >= 60)
+                                // While not at the end of the file, read lines from the file. 
+                                while (line != "" && !line.StartsWith(check) && String.Compare(line, check) < 0)
+                                    line = sr2.ReadLine();
+                                if (check == line.Substring(0, check.Length))
                                 {
-                                    workHours++;
-                                    workMinutes -= 60;
-                                }
+                                    //if found
+                                    newLine = line.Substring(0, check.Length + 1);
+                                    string hours = line.Substring(check.Length + 1, 2);
+                                    string minutes = line.Substring(line.IndexOf(':') + 1, 2);
 
-                                if (workHours < 10)
-                                {
-                                    newLine += '0';
+                                    workHours += (hours[0] - '0') * 10 + (hours[1] - '0');
+                                    workMinutes += (minutes[0] - '0') * 10 + minutes[1] - '0';
+
+                                    while (workMinutes >= 60)
+                                    {
+                                        workHours++;
+                                        workMinutes -= 60;
+                                    }
+                                    if (workHours < 10)
+                                    {
+                                        newLine += '0';
+                                    }
+                                    else
+                                    {
+                                        newLine += workHours / 10;
+                                    }
+                                    newLine += workHours % 10;
+                                    newLine += ":";
+                                    if (workMinutes < 10)
+                                    {
+                                        newLine += '0';
+                                    }
+                                    else
+                                    {
+                                        newLine += workMinutes / 10;
+                                    }
+                                    newLine += workMinutes % 10;
+                                    newLine += ",";
+                                    newLine += line.Substring(line.IndexOf(':') + 4);
+                                    int index = current.timeIn.ToString().IndexOf(' ');
+                                    int index2 = current.timeIn.ToString().LastIndexOf(' ');
+                                    newLine += current.timeIn.ToString().Substring(index, index2 - index + 1 - 4);
+                                    newLine += "/";
+                                    index = current.timeOut.ToString().IndexOf(' ');
+                                    index2 = current.timeOut.ToString().LastIndexOf(' ');
+                                    newLine += current.timeOut.ToString().Substring(index, index2 - index + 1 - 4);
+                                    newLine += ",";
                                 }
-                                else
-                                {
-                                    newLine += workHours / 10 + '0';
-                                }
-                                newLine += workHours % 10;// +'0';
-                                newLine += ":";
-                                if (workMinutes < 10)
-                                {
-                                    newLine += '0';
-                                }
-                                else
-                                {
-                                    newLine += workMinutes / 10;// +'0';
-                                }
-                                newLine += workMinutes % 10;// +'0';
-                                newLine += ",";
-                                newLine += current.timeIn.ToString().Substring(current.timeIn.ToString().IndexOf(' ')+1);
-                                newLine += "/";
-                                newLine += current.timeOut.ToString().Substring(current.timeOut.ToString().IndexOf(' ')+1);
-                                newLine += ",";
-                            
-                    }
-                    fsLog.Close();
-                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(LOG_FILE_NAME))//precondition - newLine contains name, workhours:workMinutes, ...
-                    { 
-                        file.WriteLine(newLine);//store log
+                            }
+                        }
+                        else //file log not stored yet today
+                        {
+                            newLine = "";
+                            current.getName(ref newLine);
+                            newLine += ",";
+
+                            while (workMinutes >= 60)
+                            {
+                                workHours++;
+                                workMinutes -= 60;
+                            }
+
+                            if (workHours < 10)
+                            {
+                                newLine += '0';
+                            }
+                            else
+                            {
+                                newLine += workHours / 10 + '0';
+                            }
+                            newLine += workHours % 10;// +'0';
+                            newLine += ":";
+                            if (workMinutes < 10)
+                            {
+                                newLine += '0';
+                            }
+                            else
+                            {
+                                newLine += workMinutes / 10;// +'0';
+                            }
+                            newLine += workMinutes % 10;// +'0';
+                            newLine += ",";
+                            int index = current.timeIn.ToString().IndexOf(' ');
+                            int index2 = current.timeIn.ToString().LastIndexOf(' ');
+                            newLine += current.timeIn.ToString().Substring(index, index2 - index + 1 - 4);
+                            newLine += "/";
+                            index = current.timeOut.ToString().IndexOf(' ');
+                            index2 = current.timeOut.ToString().LastIndexOf(' ');
+                            newLine += current.timeOut.ToString().Substring(index, index2 - index + 1 - 4);
+                            newLine += ",";
+
+                        }
+                        fsLog.Close();
+                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(LOG_FILE_NAME))//precondition - newLine contains name, workhours:workMinutes, ...
+                        {
+                            file.WriteLine(newLine);//store log
+                        }
                     }
                 }
             }
@@ -235,7 +272,7 @@ namespace WindowsFormsApplication1
         private SelfBalancedTree.AVLTree<User> currentlyIn = new SelfBalancedTree.AVLTree<User>();
         private SelfBalancedTree.AVLTree<User> users;
         private const string USER_FILE_NAME = "Users.dat";
-        private string LOG_FILE_NAME = "log.csv";
+        private string LOG_FILE_NAME = "";
 
     }
 
@@ -278,12 +315,29 @@ namespace WindowsFormsApplication1
         {
             newRfid = rfid;
         }
-        private string name, ID, rfid;
+        public void setAdmin()
+        {
+            Admin = true;
+        }
+        public void notAdmin()
+        {
+            Admin = false;
+        }
+        public void controlAdmin(bool set)
+        {
+            Admin = set;
+        }
+        public bool isAdmin()
+        {
+            return Admin;
+        }
+        private string name, ID, rfid, username;
         public DateTime timeIn, timeOut;
+        bool Admin;
         public int CompareTo(User input)
         {
             int result;
-            if (this.ID == input.ID)
+            if (this.ID == input.ID|| this.ID== input.rfid || this.ID == input.username)
             {
                 result = 0;
             }
@@ -293,4 +347,6 @@ namespace WindowsFormsApplication1
 
         }
     }
+
+
 }
