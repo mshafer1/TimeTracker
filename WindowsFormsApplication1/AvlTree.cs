@@ -240,6 +240,10 @@ namespace SelfBalancedTree
         {
             return this.Search(this.Root, arg) != null;
         }
+        public bool slowContains(T arg)
+        {
+            return this.
+        }
 
         /// <summary>
         /// Deletes the min. value in the tree. 

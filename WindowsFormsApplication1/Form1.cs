@@ -17,7 +17,7 @@ namespace WindowsFormsApplication1
         public Form1()
         {
             InitializeComponent();
-            
+
             if (File.Exists(USER_FILE_NAME))
             {
                 FileStream fsIn = new FileStream(USER_FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.None);
@@ -35,7 +35,7 @@ namespace WindowsFormsApplication1
                         input = sr.ReadLine();
                         newUser.setId(input);
                         input = sr.ReadLine();
-                        if (input != "USER"&& input != null)
+                        if (input != "USER" && input != null)
                         {
                             newUser.setRfid(input);
                         }
@@ -43,18 +43,20 @@ namespace WindowsFormsApplication1
                     }
                 }
             }
+            else
+            {
+               MessageBox.Show("No User Initialized", "User list not found", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk);
+            }
         }
 
         private void OK_Click(object sender, EventArgs e)
         {
-
-
             User current = new User();
             DateTime currentTime = new DateTime();
             currentTime = DateTime.Now;
             //currentTime.ToLocalTime();
             current.setId(idSearch);
-            if (users.Contains(current))//slow search
+            if (users != null && users.Contains(current))//slow search
             {
                 User temp = users.publicSearch(current);//slow search
                 string name = "";
@@ -136,9 +138,13 @@ namespace WindowsFormsApplication1
                                 newLine += workMinutes % 10;
                                 newLine += ",";
                                 newLine += line.Substring(line.IndexOf(':')+4);
-                                newLine += current.timeIn.ToString().Substring(current.timeIn.ToString().IndexOf(' ')+1,5);
+                                int index = current.timeIn.ToString().IndexOf(' ');
+                                int index2 = current.timeIn.ToString().LastIndexOf(' ');
+                                newLine += current.timeIn.ToString().Substring(index,index2-index+1-4);
                                 newLine += "/";
-                                newLine += current.timeOut.ToString().Substring(current.timeOut.ToString().IndexOf(' ')+1,5);
+                                index = current.timeOut.ToString().IndexOf(' ');
+                                index2 = current.timeOut.ToString().LastIndexOf(' ');
+                                newLine += current.timeOut.ToString().Substring(index,index2-index+1-4);
                                 newLine += ",";
                             }      
                         }
@@ -199,7 +205,28 @@ namespace WindowsFormsApplication1
         private void ID_TextChanged(object sender, EventArgs e)
         {
             IDField.PasswordChar = '*';
-            idSearch = IDField.Text;
+            if (IDField.Text.Length > 0 && (IDField.Text[0] == ';' || (IDField.Text[0] == 'H' &&  char.IsDigit(IDField.Text[1]) )|| (IDField.Text[0] == 'h'&&  char.IsDigit(IDField.Text[1]))))
+            {
+                if (IDField.Text[IDField.Text.Length - 1] == '?')
+                {
+                    idSearch = IDField.Text.Substring(1, IDField.Text.Length - 3);
+                }
+                else
+                {
+                    idSearch = IDField.Text.Substring(((IDField.Text.Length > 1)?1:0), (IDField.Text.Length <= 8) ? IDField.Text.Length-((IDField.Text.Length > 1)?1:0) : 8);
+                }
+            }
+            else
+            {
+                if (IDField.Text.Length > 0 && (char.IsLetter(IDField.Text[0]) && IDField.Text.Length > 1 && char.IsLetter(IDField.Text[1])))
+                {
+                    idSearch = IDField.Text;
+                }
+                else
+                {
+                    idSearch = IDField.Text.Substring(0,(IDField.Text.Length<=8)?IDField.Text.Length:8);
+                }
+            }
         }
         
 
@@ -208,7 +235,7 @@ namespace WindowsFormsApplication1
         private SelfBalancedTree.AVLTree<User> currentlyIn = new SelfBalancedTree.AVLTree<User>();
         private SelfBalancedTree.AVLTree<User> users;
         private const string USER_FILE_NAME = "Users.dat";
-        private const string LOG_FILE_NAME = "log.csv";
+        private string LOG_FILE_NAME = "log.csv";
 
     }
 
