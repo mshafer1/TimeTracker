@@ -8,13 +8,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
-
+//using System.Diagnostics.Process;//at top of your application
+using System.Diagnostics;
 namespace WindowsFormsApplication1
 {
 
-    public partial class Form1 : Form
+    public partial class TutorTrack : Form
     {
-        public Form1()
+        public TutorTrack()
         {
             InitializeComponent();
             DateTime current = DateTime.Now;
@@ -84,15 +85,40 @@ namespace WindowsFormsApplication1
                 current.controlAdmin(temp.isAdmin());
                 if (current.isAdmin())
                 {
-                    
-                    DialogResult dialogResult = MessageBox.Show("Sure", "Some Title", MessageBoxButtons.YesNo);
+                    DialogResult dialogResult = MessageBox.Show("You are loged in as Admin\nWould you like to add new user?", "TutorTrack", MessageBoxButtons.YesNo);
                     if (dialogResult == DialogResult.Yes)
                     {
-                        //do something
+                        //login new user
                     }
-                    else if (dialogResult == DialogResult.No)
+                    else
                     {
-                        //do something else
+                        DialogResult dialogResult2 = MessageBox.Show("Would you like to view logs?", "TutorTrack", MessageBoxButtons.YesNo);
+                       if(dialogResult2 == DialogResult.Yes)
+                        {
+                            openFileDialog1.ShowDialog();
+                            
+
+                            //
+                            //At button click or after you finish editing
+                            //
+                            System.Diagnostics.Process excel = new System.Diagnostics.Process();
+
+                            //if the excel was installed in the target machine and the default program to open csvs
+                            //then you can simply just call process start and put the file path, like:
+                            //excel.Start(openFileDialog1.FileNames.ToString());
+
+                            //otherwise:
+                            excel.StartInfo.FileName = @"The excel application file path";
+                            excel.StartInfo.Arguments = openFileDialog1.FileName;
+                            excel.Start();
+                        }
+                        else
+                        {
+                            DialogResult dialogResult3 = MessageBox.Show("Print time sheets?", "TutorTrack", MessageBoxButtons.YesNo);
+                            if (dialogResult3 == DialogResult.Yes)
+                            {
+                            }
+                        }
                     }
                 }
                 else
@@ -273,6 +299,13 @@ namespace WindowsFormsApplication1
         private SelfBalancedTree.AVLTree<User> users;
         private const string USER_FILE_NAME = "Users.dat";
         private string LOG_FILE_NAME = "";
+
+        private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
+        {
+            // = "c:\\users\\matthew\\";
+            openFileDialog1.AddExtension = true;
+            openFileDialog1.DefaultExt = ".csv";
+        }
 
     }
 

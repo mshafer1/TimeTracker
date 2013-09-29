@@ -1,6 +1,6 @@
 ﻿namespace WindowsFormsApplication1
 {
-    partial class Form1
+    partial class TutorTrack
     {
         /// <summary>
         /// Required designer variable.
@@ -30,6 +30,7 @@
         {
             this.IDField = new System.Windows.Forms.TextBox();
             this.OK = new System.Windows.Forms.Button();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.SuspendLayout();
             // 
             // IDField
@@ -53,14 +54,19 @@
             this.OK.UseVisualStyleBackColor = true;
             this.OK.Click += new System.EventHandler(this.OK_Click);
             // 
-            // Form1
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
+            this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
+            // 
+            // TutorTrack
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(521, 393);
             this.Controls.Add(this.IDField);
             this.Controls.Add(this.OK);
-            this.Name = "Form1";
+            this.Name = "TutorTrack";
             this.Text = "Form1";
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -71,6 +77,7 @@
 
         private System.Windows.Forms.TextBox IDField;
         private System.Windows.Forms.Button OK;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
     }
 }
 
