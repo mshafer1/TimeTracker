@@ -19,8 +19,10 @@ namespace WindowsFormsApplication1
         {
             InitializeComponent();
             DateTime current = DateTime.Now;
-            LOG_FILE_NAME = current.ToShortDateString();
-            LOG_FILE_NAME = LOG_FILE_NAME.Replace("/", ".");
+            
+            //LOG_FILE_NAME = current.ToShortDateString();
+            //LOG_FILE_NAME = LOG_FILE_NAME.Replace("/", ".");
+            LOG_FILE_NAME = "log";
             LOG_FILE_NAME += ".csv";
             if (File.Exists(USER_FILE_NAME))
             {
@@ -50,7 +52,7 @@ namespace WindowsFormsApplication1
                         newUser.setId(input);
 
                         input = sr.ReadLine();
-                        if (input != "USER" && input != null)
+                        if (input != "USER" && input != null && input != "ADMIN")
                         {
                             newUser.setRfid(input);
                             input = sr.ReadLine();
@@ -183,41 +185,19 @@ namespace WindowsFormsApplication1
 
         private void runAdmin()
         {
-            DialogResult dialogResult = MessageBox.Show("You are loged in as Admin\nWould you like to add new user?", "TutorTrack", MessageBoxButtons.YesNo);
-            if (dialogResult == DialogResult.Yes)
+           int choice = AdminPrompt.ShowDialog("Logged in as Admin", "TutorTrack")[0]-'0' ;
+           // DialogResult dialogResult = MessageBox.Show(\nWould you like to add a new user?", "TutorTrack", MessageBoxButtons.YesNo);
+            if (choice == 0)//new user
             {
-                //create new user
+                //User newUser = 
             }
-            else
+            else if (choice == 1)
             {
-                DialogResult dialogResult2 = MessageBox.Show("Would you like to view logs?", "TutorTrack", MessageBoxButtons.YesNo);
-                if (dialogResult2 == DialogResult.Yes)
-                {
-                    openFileDialog1.ShowDialog();
-
-
-                    //
-                    //At button click or after you finish editing
-                    //
-                    //System.Diagnostics.Process excel = new System.Diagnostics.Process();
-
-                    ////if the excel was installed in the target machine and the default program to open csvs
-                    ////then you can simply just call process start and put the file path, like:
-                    ////excel.Start(openFileDialog1.FileNames.ToString());
-
-                    ////otherwise:
-                    //excel.StartInfo.FileName = @"The excel application file path";
-                    //excel.StartInfo.Arguments = openFileDialog1.FileName;
-                    //excel.Start();
-                }
-                else
-                {
-                    DialogResult dialogResult3 = MessageBox.Show("Print time sheets?", "TutorTrack", MessageBoxButtons.YesNo);
-                    if (dialogResult3 == DialogResult.Yes)
-                    {
-                    }
-                }
             }
+            else if (choice == 2)
+            {
+            }
+            
         }
 
         private void openLog(ref FileStream fsLog, ref bool fileExisted)
@@ -481,5 +461,62 @@ namespace WindowsFormsApplication1
         }
     }
 
+    public static class AdminPrompt
+    {
+        public static string ShowDialog(string text, string caption)
+        {
+            Form prompt = new Form();
+            prompt.Width = 300;
+            prompt.Height = 200;
+            prompt.Text = caption;
+            int choice = 0;
+            Label textLabel = new Label() { Left = 40, Top = 10, Text = text };
+            //TextBox textBox = new TextBox() { Left = 50, Top = 50, Width = 400 };
+            Button newUser = new Button() { Text = "New User", Left = 50, Width = 100, Top = 30 };
+            newUser.Click += (sender, e) => { prompt.Close(); choice = 0; };
+
+            Button printTimeSheet = new Button() { Text = "Print Time Sheet", Left = 50, Width = 100, Top = 60};
+            printTimeSheet.Click += (sender, e) => { prompt.Close(); choice =1;};
+
+            Button viewLog = new Button() { Text = "View Log", Left = 50, Width =100, Top = 90 };
+            viewLog.Click += (sender, e) => { prompt.Close(); choice = 2; };
+
+            prompt.Controls.Add(newUser);
+            prompt.Controls.Add(textLabel);
+            prompt.Controls.Add(printTimeSheet);
+            prompt.Controls.Add(viewLog);
+            prompt.ShowDialog();
+            return choice.ToString();
+        }
+    }
+
+    public static class newUser
+    {
+        public static string ShowDialog(string text, string caption)
+        {
+            Form prompt = new Form();
+            prompt.Width = 400;
+            prompt.Height = 200;
+            prompt.Text = caption;
+            int choice = 0;
+            Label textLabel = new Label() { Left = 40, Top = 10, Text = text };
+            //TextBox textBox = new TextBox() { Left = 50, Top = 50, Width = 400 };
+            Button newUser = new Button() { Text = "New User", Left = 50, Width = 100, Top = 30 };
+            newUser.Click += (sender, e) => { prompt.Close(); choice = 0; };
+
+            Button printTimeSheet = new Button() { Text = "Print Time Sheet", Left = 50, Width = 100, Top = 60 };
+            printTimeSheet.Click += (sender, e) => { prompt.Close(); choice = 1; };
+
+            Button viewLog = new Button() { Text = "View Log", Left = 50, Width = 100, Top = 90 };
+            viewLog.Click += (sender, e) => { prompt.Close(); choice = 2; };
+
+            prompt.Controls.Add(newUser);
+            prompt.Controls.Add(textLabel);
+            prompt.Controls.Add(printTimeSheet);
+            prompt.Controls.Add(viewLog);
+            prompt.ShowDialog();
+            return choice.ToString();
+        }
+    }
 
 }
