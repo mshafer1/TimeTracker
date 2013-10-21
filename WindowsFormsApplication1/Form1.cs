@@ -47,7 +47,7 @@ namespace WindowsFormsApplication1
                         }
 
                         input = sr.ReadLine();
-                        newUser.setName(ref input);
+                        newUser.setName(input);
 
                         input = sr.ReadLine();
                         newUser.setId(input);
@@ -205,7 +205,7 @@ namespace WindowsFormsApplication1
             temp.getName(ref name);
             temp.getRfid(ref rfid);
             current.setRfid(rfid);
-            current.setName(ref name);
+            current.setName(name);
             current.controlAdmin(temp.isAdmin());
             current.setStudent(temp.getStudent());
             current.setId(id);
@@ -246,7 +246,8 @@ namespace WindowsFormsApplication1
                                 output = input.Substring(0, index2);
                                 file.WriteLine("NAME: " + output);
                                 User temp = new User();
-                                temp.setName(ref output);
+                                temp.setId(output);
+                                //temp.setId("");
                                 if (users.slowContains(temp))
                                 {
                                     getUser(ref temp);
@@ -275,7 +276,9 @@ namespace WindowsFormsApplication1
                                     else
                                         output = "";
                                 }
+                                temp.setId("");
                             }
+                            
                             input = sr.ReadLine();
                         }
                     }
@@ -568,7 +571,7 @@ namespace WindowsFormsApplication1
         {
             nameGet = name;
         }
-        public void setName(ref String newName)
+        public void setName(String newName)
         {
             name = newName;
         }
@@ -635,7 +638,7 @@ namespace WindowsFormsApplication1
         public int CompareTo(User input)
         {
             int result;
-            if (this.ID == input.ID ^ this.ID == input.rfid ^ this.ID == input.username)
+            if (this.ID == input.ID || this.ID == input.name || this.name == input.ID)
             {
                 result = 0;
             }
@@ -644,7 +647,7 @@ namespace WindowsFormsApplication1
 
 
         }
-        private string name, ID, rfid, username;
+        private string name, ID, rfid;
         public int workHours, workMinutes;
         public DateTime timeIn, timeOut;
         bool Admin, isStudent;
@@ -713,7 +716,7 @@ namespace WindowsFormsApplication1
                     name = LastName.Text;
                     name += ", ";
                     name += FirstName.Text;
-                    result.setName(ref name);
+                    result.setName(name);
                     result.setId(HNumber.Text);
                     result.setRfid(RFIDtag.Text);
                     result.setStudent((isStudent.Checked));
