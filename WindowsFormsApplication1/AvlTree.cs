@@ -238,7 +238,8 @@ namespace SelfBalancedTree
         /// </returns>
         public bool Contains(T arg)
         {
-            return this.Search(this.Root, arg) != null;
+            bool result = this.Search(this.Root, arg) != null;
+            return result;
         }
 
         public bool slowContains(T arg)
@@ -386,7 +387,10 @@ namespace SelfBalancedTree
         public T publicSlowSearch(T data)
         {
             Node<T> result = slowSearch(Root, data);
-            data = result.Data;
+            if (result != null)
+            {
+                data = result.Data;
+            }
             return data;
         }
 

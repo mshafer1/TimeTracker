@@ -19,7 +19,7 @@ namespace WindowsFormsApplication1
         {
             InitializeComponent();
             DateTime current = DateTime.Now;
-            
+
             //LOG_FILE_NAME = current.ToShortDateString();
             //LOG_FILE_NAME = LOG_FILE_NAME.Replace("/", ".");
             LOG_FILE_NAME = "log";
@@ -33,9 +33,10 @@ namespace WindowsFormsApplication1
                     string input;
                     input = sr.ReadLine();
                     // While not at the end of the file, read lines from the file. 
-                    while (input == "USER" || input == "ADMIN")
+                    while (input == "TUTOR" || input == "ADMIN" || input == "STUDENT")
                     {
                         User newUser = new User();
+                        newUser.setStudent(input);
                         if (input == "ADMIN")
                         {
                             newUser.setAdmin();
@@ -52,7 +53,7 @@ namespace WindowsFormsApplication1
                         newUser.setId(input);
 
                         input = sr.ReadLine();
-                        if (input != "USER" && input != null && input != "ADMIN")
+                        if (input != "TUTOR" && input != null && input != "ADMIN" && input != "STUDENT")
                         {
                             newUser.setRfid(input);
                             input = sr.ReadLine();
@@ -64,7 +65,7 @@ namespace WindowsFormsApplication1
             }
             else
             {
-                MessageBox.Show("No User Initialized", "User list not found", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk);
+                MessageBox.Show("No User Initialized", "User list not found", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk);//change to initialization
             }
         }
 
@@ -74,6 +75,8 @@ namespace WindowsFormsApplication1
             currentTime = DateTime.Now;
             User current = new User();
             setCurrent(ref current);
+
+           
             if (users != null && users.slowContains(current))//slow search
             {
                 getUser(ref current);
@@ -83,10 +86,31 @@ namespace WindowsFormsApplication1
                 }
                 else
                 {
+
                     if (!currentlyIn.Contains(current))//not logged in
                     {
-                        current.setTimeIn(currentTime);//set time in and log in
-                        currentlyIn.Add(current);
+                        if (!(current.getStudent()))
+                        {
+                            User checker = new User();
+
+                            checker.setId(Login.ShowDialog());
+
+                            getUser(ref checker);
+                            if (users.Contains(checker) && checker.getStudent())
+                            {
+                                current.setTimeIn(currentTime);//set time in and log in
+                                currentlyIn.Add(current);
+                               // currentlyIn.Add(checker);
+                            }
+                            else
+                            {
+                                MessageBox.Show("Please either retry or see system administrator for help", "Client not Recognized", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk);
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("Please either retry or see system administrator for help", "Client not Recognized", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk);
+                        }
                     }
                     else if (currentlyIn.Contains(current))
                     {
@@ -100,8 +124,8 @@ namespace WindowsFormsApplication1
                         openLog(ref fsLog, ref fileExisted);
                         if (fileExisted)
                         {
-                            updateLog(ref fsLog,ref current);
-                           
+                            updateLog(ref fsLog, ref current);
+
                         }
                         else //file log not stored yet today
                         {
@@ -109,7 +133,7 @@ namespace WindowsFormsApplication1
                             createLog(ref current);
                         }
                     }
-                    
+
                 }
 
             }
@@ -176,28 +200,122 @@ namespace WindowsFormsApplication1
             User temp = users.publicSlowSearch(current);//slow search
             string name = "";
             string rfid = "";
+            string id = "";
+            temp.getID(ref id);
             temp.getName(ref name);
             temp.getRfid(ref rfid);
             current.setRfid(rfid);
             current.setName(ref name);
             current.controlAdmin(temp.isAdmin());
+            current.setStudent(temp.getStudent());
+            current.setId(id);
         }
 
         private void runAdmin()
         {
-           int choice = AdminPrompt.ShowDialog("Logged in as Admin", "TutorTrack")[0]-'0' ;
-           // DialogResult dialogResult = MessageBox.Show(\nWould you like to add a new user?", "TutorTrack", MessageBoxButtons.YesNo);
+            int choice = AdminPrompt.ShowDialog("Logged in as Admin", "TutorTrack")[0] - '0';
+            // DialogResult dialogResult = MessageBox.Show(\nWould you like to add a new user?", "TutorTrack", MessageBoxButtons.YesNo);
             if (choice == 0)//new user
             {
-                //User newUser = 
+                User newUsertest = newUser.ShowDialog();
+                users.Add(newUsertest);
+                using (StreamWriter w = File.AppendText("Users.dat"))//new User
+                {
+                    Log(newUsertest, w);
+                    w.Close();
+                }
             }
-            else if (choice == 1)
+            else if (choice == 1)//print time sheet
             {
+                using (FileStream fsIn = new FileStream(LOG_FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    using (StreamReader sr = new StreamReader(fsIn))
+                    {
+                        string input;
+                        input = sr.ReadLine();
+                        while (input != null)
+                        {
+                            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"TIME_SHEET.DAT"))
+                            {
+                                int index = input.IndexOf(',');
+                                int index2 = input.IndexOf(',',index+1);//length of name
+                                index = input.IndexOf(',',index2+1)+1;//index of total
+                                string output = "\t\tTime Sheet";
+                                file.WriteLine(output);
+
+                                output = input.Substring(0, index2);
+                                file.WriteLine("NAME: " + output);
+                                User temp = new User();
+                                temp.setName(ref output);
+                                if (users.slowContains(temp))
+                                {
+                                    getUser(ref temp);
+                                }
+                                temp.getID(ref output);
+                                
+                                file.WriteLine("H Number: " + output);
+
+                                output = "Date\tTime In\tTime Out";
+                                file.WriteLine(output);
+
+                                index2 = input.IndexOf(',', index+1);//second time
+                                output = input.Substring(index, index2 - index);
+                                while (output != "")
+                                {
+                                    output = output.Replace(" PM", "PM");
+                                    output = output.Replace(" AM", "AM");
+
+                                    output = output.Replace(' ', '\t');
+                                    output = output.Substring(0,10) +  output.Substring(9).Replace('/', '\t');
+                                    file.WriteLine(output);
+                                    index = index2;
+                                    index2 = input.IndexOf(',', index+1);
+                                    if (index2 != -1 && index != -1)
+                                        output = input.Substring(index + 1, index2 - index - 1);
+                                    else
+                                        output = "";
+                                }
+                            }
+                            input = sr.ReadLine();
+                        }
+                    }
+                }
             }
             else if (choice == 2)
             {
             }
-            
+
+        }
+
+        private static void Log(User user, TextWriter w)
+        {
+            string output = "TUTOR";
+            if (user.isAdmin())
+            {
+                output = "ADMIN";
+            }
+            else if (user.getStudent())
+            {
+                output = "STUDENT";
+            }
+            w.WriteLine(output);
+
+            user.getName(ref output);
+            w.WriteLine(output);
+
+            user.getID(ref output);
+            w.WriteLine(output);
+
+            user.getRfid(ref output);
+            if (output.Length > 0)
+            {
+                w.WriteLine(output);
+            }
+
+        }
+        private static void Log2(string line, TextWriter w)
+        {
+            w.WriteLine(line);
         }
 
         private void openLog(ref FileStream fsLog, ref bool fileExisted)
@@ -205,13 +323,13 @@ namespace WindowsFormsApplication1
 
             try
             {
-                fsLog = new FileStream(LOG_FILE_NAME, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+                fsLog = new FileStream(LOG_FILE_NAME, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
                 fileExisted = true;
             }
             catch
             {
                 fileExisted = false;
-                fsLog = new FileStream(LOG_FILE_NAME, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+                fsLog = new FileStream(LOG_FILE_NAME, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
             }
         }
 
@@ -220,31 +338,40 @@ namespace WindowsFormsApplication1
             string newLine = "";
             current.getName(ref newLine);
             newLine += ",";
-            if (current.workHours < 10)
+            if (current.workHours < 1 && current.workMinutes < 15)
             {
-                newLine += '0';
+                newLine += "00:00";
             }
             else
             {
-                newLine += current.workHours / 10;
+                if (current.workHours < 10)
+                {
+                    newLine += '0';
+                }
+                else
+                {
+                    newLine += current.workHours / 10;
+                }
+                newLine += current.workHours % 10;
+                newLine += ":";
+                if (current.workMinutes < 10)
+                {
+                    newLine += '0';
+                }
+                else
+                {
+                    newLine += current.workMinutes / 10;
+                }
+                newLine += current.workMinutes % 10;
             }
-            newLine += current.workHours % 10;
-            newLine += ":";
-            if (current.workMinutes < 10)
-            {
-                newLine += '0';
-            }
-            else
-            {
-                newLine += current.workMinutes / 10;
-            }
-            newLine += current.workMinutes % 10;
             newLine += ",";
 
             int index = current.timeIn.ToString().IndexOf(' ');
             int index2 = current.timeIn.ToString().LastIndexOf(' ');
 
-            newLine += current.timeIn.ToShortTimeString();//.Substring(index, index2 - index + 1 - 4);
+            newLine += current.timeIn.ToShortDateString();//.Substring(index, index2 - index + 1 - 4);
+            newLine += " ";
+            newLine += current.timeIn.ToShortTimeString();
             newLine += "/";
             index = current.timeOut.ToString().IndexOf(' ');
             index2 = current.timeOut.ToString().LastIndexOf(' ');
@@ -259,6 +386,7 @@ namespace WindowsFormsApplication1
 
         private void updateLog(ref FileStream fsLog, ref User current)
         {
+            bool found = false;
             string line, newLine = "";
             using (StreamReader sr2 = new StreamReader(fsLog))
             {
@@ -267,40 +395,50 @@ namespace WindowsFormsApplication1
                 current.getName(ref check);
 
                 // While not at the end of the file, read lines from the file.
-                while (line != "" && !line.StartsWith(check) && String.Compare(line, check) < 0)
+                while (line != null && !line.StartsWith(check) && String.Compare(line, check) < 0)
                     line = sr2.ReadLine();
 
-                if (check == line.Substring(0, check.Length))//if found
+                if (line != null && check == line.Substring(0, check.Length))//if found
                 {
+                    found = true;
                     updateWorkTime(line, ref current);
                     current.getName(ref newLine);
                     newLine += ",";
-                    if (current.workHours < 10)
+                    if (current.workHours < 1 && current.workMinutes < 15)
                     {
-                        newLine += '0';
+                        newLine += "00:00";
                     }
                     else
                     {
-                        newLine += current.workHours / 10;
+                        if (current.workHours < 10)
+                        {
+                            newLine += '0';
+                        }
+                        else
+                        {
+                            newLine += current.workHours / 10;
+                        }
+                        newLine += current.workHours % 10;
+                        newLine += ":";
+                        if (current.workMinutes < 10)
+                        {
+                            newLine += '0';
+                        }
+                        else
+                        {
+                            newLine += current.workMinutes / 10;
+                        }
+                        newLine += current.workMinutes % 10;
                     }
-                    newLine += current.workHours % 10;
-                    newLine += ":";
-                    if (current.workMinutes < 10)
-                    {
-                        newLine += '0';
-                    }
-                    else
-                    {
-                        newLine += current.workMinutes / 10;
-                    }
-                    newLine += current.workMinutes % 10;
                     newLine += ",";
                     newLine += line.Substring(line.IndexOf(':') + 4);
 
                     int index = current.timeIn.ToString().IndexOf(' ');
                     int index2 = current.timeIn.ToString().LastIndexOf(' ');
 
-                    newLine += current.timeIn.ToShortTimeString();//.Substring(index, index2 - index + 1 - 4);
+                    newLine += current.timeIn.ToShortDateString();//.Substring(index, index2 - index + 1 - 4);
+                    newLine += " ";
+                    newLine += current.timeIn.ToShortTimeString();
                     newLine += "/";
                     index = current.timeOut.ToString().IndexOf(' ');
                     index2 = current.timeOut.ToString().LastIndexOf(' ');
@@ -309,45 +447,80 @@ namespace WindowsFormsApplication1
                 }
                 else
                 {
+                    line = "";
                     current.getName(ref newLine);
                     newLine += ",";
-                    if (current.workHours < 10)
+                    if (current.workHours < 1 && current.workMinutes < 15)
                     {
-                        newLine += '0';
+                        newLine += "00:00";
                     }
                     else
                     {
-                        newLine += current.workHours / 10;
+                        if (current.workHours < 10)
+                        {
+                            newLine += '0';
+                        }
+                        else
+                        {
+                            newLine += current.workHours / 10;
+                        }
+                        newLine += current.workHours % 10;
+                        newLine += ":";
+                        if (current.workMinutes < 10)
+                        {
+                            newLine += '0';
+                        }
+                        else
+                        {
+                            newLine += current.workMinutes / 10;
+                        }
+                        newLine += current.workMinutes % 10;
                     }
-                    newLine += current.workHours % 10;
-                    newLine += ":";
-                    if (current.workMinutes < 10)
-                    {
-                        newLine += '0';
-                    }
-                    else
-                    {
-                        newLine += current.workMinutes / 10;
-                    }
-                    newLine += current.workMinutes % 10;
-
+                    newLine += ",";
                     int index = current.timeIn.ToString().IndexOf(' ');
                     int index2 = current.timeIn.ToString().LastIndexOf(' ');
 
-                    newLine += current.timeIn.ToShortTimeString();//.Substring(index, index2 - index + 1 - 4);
+                    newLine += current.timeIn.ToShortDateString();//.Substring(index, index2 - index + 1 - 4);
+
+                    newLine += " ";
+                    newLine += current.timeIn.ToShortTimeString();
                     newLine += "/";
                     index = current.timeOut.ToString().IndexOf(' ');
                     index2 = current.timeOut.ToString().LastIndexOf(' ');
                     newLine += current.timeOut.ToShortTimeString();//.Substring(index, index2 - index + 1 - 4);
                     newLine += ",";
                 }
-
+                //long position = fsLog.Position;   
                 fsLog.Close();
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(LOG_FILE_NAME))//precondition - newLine contains name, workhours:workMinutes, ...
+                string[] readText = File.ReadAllLines(LOG_FILE_NAME);
+                if (readText.Count() == 1)
                 {
-                    file.WriteLine(newLine);//store log
+                    readText[0] = newLine;
                 }
-                
+                else
+                {
+                    for (int i = 0; readText.Count() > i; i++)
+                    {
+                        if (readText[i] == line)
+                        {
+                            readText[i] = newLine;
+                            i = readText.Count();
+                        }
+                    }
+                }
+                if (found)
+                {
+                    System.IO.File.WriteAllLines(LOG_FILE_NAME, readText);
+                }
+                else
+                {
+                    using (StreamWriter w = File.AppendText(LOG_FILE_NAME))
+                    {
+                        Log2(newLine, w);
+                        w.Close();
+                    }
+                }
+
             }
         }
 
@@ -415,7 +588,7 @@ namespace WindowsFormsApplication1
         {
             time = timeOut.Ticks - timeIn.Ticks;
         }
-        public void getID(String outputID)
+        public void getID(ref String outputID)
         {
             outputID = ID;
         }
@@ -443,14 +616,26 @@ namespace WindowsFormsApplication1
         {
             return Admin;
         }
-        private string name, ID, rfid, username;
-        public int workHours, workMinutes;
-        public DateTime timeIn, timeOut;
-        bool Admin;
+        public void setStudent(string check)
+        {
+            if (check == "STUDENT")
+            {
+                isStudent = true;
+            }
+        }
+        public void setStudent(bool check)
+        {
+            isStudent = check;
+        }
+        public bool getStudent()
+        {
+            return isStudent;
+        }
+
         public int CompareTo(User input)
         {
             int result;
-            if (this.ID == input.ID || this.ID == input.rfid || this.ID == input.username)
+            if (this.ID == input.ID ^ this.ID == input.rfid ^ this.ID == input.username)
             {
                 result = 0;
             }
@@ -459,6 +644,10 @@ namespace WindowsFormsApplication1
 
 
         }
+        private string name, ID, rfid, username;
+        public int workHours, workMinutes;
+        public DateTime timeIn, timeOut;
+        bool Admin, isStudent;
     }
 
     public static class AdminPrompt
@@ -467,35 +656,6 @@ namespace WindowsFormsApplication1
         {
             Form prompt = new Form();
             prompt.Width = 300;
-            prompt.Height = 200;
-            prompt.Text = caption;
-            int choice = 0;
-            Label textLabel = new Label() { Left = 40, Top = 10, Text = text };
-            //TextBox textBox = new TextBox() { Left = 50, Top = 50, Width = 400 };
-            Button newUser = new Button() { Text = "New User", Left = 50, Width = 100, Top = 30 };
-            newUser.Click += (sender, e) => { prompt.Close(); choice = 0; };
-
-            Button printTimeSheet = new Button() { Text = "Print Time Sheet", Left = 50, Width = 100, Top = 60};
-            printTimeSheet.Click += (sender, e) => { prompt.Close(); choice =1;};
-
-            Button viewLog = new Button() { Text = "View Log", Left = 50, Width =100, Top = 90 };
-            viewLog.Click += (sender, e) => { prompt.Close(); choice = 2; };
-
-            prompt.Controls.Add(newUser);
-            prompt.Controls.Add(textLabel);
-            prompt.Controls.Add(printTimeSheet);
-            prompt.Controls.Add(viewLog);
-            prompt.ShowDialog();
-            return choice.ToString();
-        }
-    }
-
-    public static class newUser
-    {
-        public static string ShowDialog(string text, string caption)
-        {
-            Form prompt = new Form();
-            prompt.Width = 400;
             prompt.Height = 200;
             prompt.Text = caption;
             int choice = 0;
@@ -519,4 +679,91 @@ namespace WindowsFormsApplication1
         }
     }
 
+    static class newUser
+    {
+        public static User ShowDialog()
+        {
+            User result = new User();
+            Form prompt = new Form();
+            prompt.Width = 600;
+            prompt.Height = 250;
+            prompt.Text = "Add new User";
+            Label error = new Label() { Left = 40, Top = 5, Text = "Please enter First and Last Names and H number", Width = 500 };
+            Label textLabel = new Label() { Left = 40, Top = 20, Text = "New User's First Name", Height = 15 };
+            TextBox FirstName = new TextBox() { Left = 40, Top = 35, Width = 200 };
+
+            Label textLabel2 = new Label() { Left = 40, Top = 55, Text = "New User's Last Name", Height = 15 };
+            TextBox LastName = new TextBox() { Left = 40, Top = 70, Width = 200 };
+
+            Label textLabel3 = new Label() { Left = 40, Top = 90, Text = "New User's H number", Height = 15 };
+            TextBox HNumber = new TextBox() { Left = 40, Top = 105, Width = 200 };
+
+            Label textLabel4 = new Label() { Left = 40, Top = 125, Text = "New User's RFID tag (if available)", Height = 15 };
+            TextBox RFIDtag = new TextBox() { Left = 40, Top = 140, Width = 200 };
+
+            Label textLabel5 = new Label() { Left = 250, Top = 20, Text = "Is a Student", Height = 15 };
+            CheckBox isStudent = new CheckBox() { Left = 250, Top = 35 };
+
+            Button OK = new Button() { Text = "OK", Left = 50, Width = 200, Top = 165 };
+            OK.Click += (sender, e) =>
+            {
+                if (FirstName.Text.Length > 0 && LastName.Text.Length > 0 && HNumber.Text.Length > 0)
+                {
+                    string name = "";
+                    name = LastName.Text;
+                    name += ", ";
+                    name += FirstName.Text;
+                    result.setName(ref name);
+                    result.setId(HNumber.Text);
+                    result.setRfid(RFIDtag.Text);
+                    result.setStudent((isStudent.Checked));
+                    prompt.Close();
+                }
+                else { prompt.Controls.Add(error); }
+            };
+
+            prompt.Controls.Add(textLabel);
+            prompt.Controls.Add(FirstName);
+
+            prompt.Controls.Add(textLabel2);
+            prompt.Controls.Add(LastName);
+
+            prompt.Controls.Add(textLabel3);
+            prompt.Controls.Add(HNumber);
+
+            prompt.Controls.Add(textLabel4);
+            prompt.Controls.Add(RFIDtag);
+
+            prompt.Controls.Add(textLabel5);
+            prompt.Controls.Add(isStudent);
+
+            prompt.Controls.Add(OK);
+            prompt.ShowDialog();
+            return result;
+        }
+    }
+
+    public static class Login
+    {
+        public static string ShowDialog()
+        {
+            string result = "";
+            Form prompt = new Form();
+            prompt.Width = 300;
+            prompt.Height = 200;
+            prompt.Text = "Student Login";
+
+            Label textLabel = new Label() { Left = 40, Top = 10, Text = "ID", Height = 15 };
+            TextBox textBox = new TextBox() { Left = 40, Top = 25, Width = 200 };
+
+            Button OK = new Button() { Text = "OK", Left = 50, Width = 50, Top = 40 };
+            OK.Click += (sender, e) => { result = textBox.Text; prompt.Close(); };
+
+            prompt.Controls.Add(textBox);
+            prompt.Controls.Add(textLabel);
+            prompt.Controls.Add(OK);
+            prompt.ShowDialog();
+            return result;
+        }
+    }
 }
