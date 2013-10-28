@@ -76,7 +76,7 @@ namespace WindowsFormsApplication1
             User current = new User();
             setCurrent(ref current);
 
-           
+
             if (users != null && users.slowContains(current))//slow search
             {
                 getUser(ref current);
@@ -100,7 +100,7 @@ namespace WindowsFormsApplication1
                             {
                                 current.setTimeIn(currentTime);//set time in and log in
                                 currentlyIn.Add(current);
-                               // currentlyIn.Add(checker);
+                                // currentlyIn.Add(checker);
                             }
                             else
                             {
@@ -238,8 +238,8 @@ namespace WindowsFormsApplication1
                             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"TIME_SHEET.DAT"))
                             {
                                 int index = input.IndexOf(',');
-                                int index2 = input.IndexOf(',',index+1);//length of name
-                                index = input.IndexOf(',',index2+1)+1;//index of total
+                                int index2 = input.IndexOf(',', index + 1);//length of name
+                                index = input.IndexOf(',', index2 + 1) + 1;//index of total
                                 string output = "\t\tTime Sheet";
                                 file.WriteLine(output);
 
@@ -253,13 +253,13 @@ namespace WindowsFormsApplication1
                                     getUser(ref temp);
                                 }
                                 temp.getID(ref output);
-                                
+
                                 file.WriteLine("H Number: " + output);
 
                                 output = "Date\tTime In\tTime Out";
                                 file.WriteLine(output);
 
-                                index2 = input.IndexOf(',', index+1);//second time
+                                index2 = input.IndexOf(',', index + 1);//second time
                                 output = input.Substring(index, index2 - index);
                                 while (output != "")
                                 {
@@ -267,10 +267,10 @@ namespace WindowsFormsApplication1
                                     output = output.Replace(" AM", "AM");
 
                                     output = output.Replace(' ', '\t');
-                                    output = output.Substring(0,10) +  output.Substring(9).Replace('/', '\t');
+                                    output = output.Substring(0, 10) + output.Substring(9).Replace('/', '\t');
                                     file.WriteLine(output);
                                     index = index2;
-                                    index2 = input.IndexOf(',', index+1);
+                                    index2 = input.IndexOf(',', index + 1);
                                     if (index2 != -1 && index != -1)
                                         output = input.Substring(index + 1, index2 - index - 1);
                                     else
@@ -278,7 +278,7 @@ namespace WindowsFormsApplication1
                                 }
                                 temp.setId("");
                             }
-                            
+
                             input = sr.ReadLine();
                         }
                     }
@@ -543,7 +543,84 @@ namespace WindowsFormsApplication1
             current.normalizeTime();
         }
 
+        private void enter(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '\r')
+            {
+                DateTime currentTime = new DateTime();
+                currentTime = DateTime.Now;
+                User current = new User();
+                setCurrent(ref current);
+
+
+                if (users != null && users.slowContains(current))//slow search
+                {
+                    getUser(ref current);
+                    if (current.isAdmin())
+                    {
+                        runAdmin();
+                    }
+                    else
+                    {
+
+                        if (!currentlyIn.Contains(current))//not logged in
+                        {
+                            if (!(current.getStudent()))
+                            {
+                                User checker = new User();
+
+                                checker.setId(Login.ShowDialog());
+
+                                getUser(ref checker);
+                                if (users.Contains(checker) && checker.getStudent())
+                                {
+                                    current.setTimeIn(currentTime);//set time in and log in
+                                    currentlyIn.Add(current);
+                                    // currentlyIn.Add(checker);
+                                }
+                                else
+                                {
+                                    MessageBox.Show("Please either retry or see system administrator for help", "Client not Recognized", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk);
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show("Please either retry or see system administrator for help", "Client not Recognized", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk);
+                            }
+                        }
+                        else if (currentlyIn.Contains(current))
+                        {
+                            current = currentlyIn.publicSearch(current);
+                            currentlyIn.Delete(current);
+                            current.setTimeOut(currentTime);
+                            current.setWorkTime();
+
+                            FileStream fsLog = null;
+                            bool fileExisted = new bool();
+                            openLog(ref fsLog, ref fileExisted);
+                            if (fileExisted)
+                            {
+                                updateLog(ref fsLog, ref current);
+
+                            }
+                            else //file log not stored yet today
+                            {
+                                fsLog.Close();
+                                createLog(ref current);
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
+        private void Exit(object sender, FormClosingEventArgs e)
+        {
+
+        }
     }
+
 
 
     class User : IComparable<User>
@@ -638,7 +715,7 @@ namespace WindowsFormsApplication1
         public int CompareTo(User input)
         {
             int result;
-            if (this.ID == input.ID || this.ID == input.name || this.name == input.ID)
+            if (this.ID == input.ID || this.name == input.ID || this.rfid == input.ID)
             {
                 result = 0;
             }

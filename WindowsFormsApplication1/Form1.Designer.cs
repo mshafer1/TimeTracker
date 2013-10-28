@@ -44,6 +44,7 @@
             this.IDField.Size = new System.Drawing.Size(201, 20);
             this.IDField.TabIndex = 0;
             this.IDField.TextChanged += new System.EventHandler(this.ID_TextChanged);
+            this.IDField.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.enter);
             // 
             // OK
             // 
@@ -84,6 +85,7 @@
             this.Controls.Add(this.OK);
             this.Name = "TutorTrack";
             this.Text = "Form1";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Exit);
             this.ResumeLayout(false);
             this.PerformLayout();
 
