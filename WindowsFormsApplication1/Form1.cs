@@ -65,7 +65,8 @@ namespace WindowsFormsApplication1
             }
             else
             {
-                MessageBox.Show("No User Initialized", "User list not found", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk);//change to initialization
+                runAdmin();
+                //MessageBox.Show("No User Initialized", "User list not found", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk);//change to initialization
             }
         }
 
@@ -217,12 +218,22 @@ namespace WindowsFormsApplication1
             // DialogResult dialogResult = MessageBox.Show(\nWould you like to add a new user?", "TutorTrack", MessageBoxButtons.YesNo);
             if (choice == 0)//new user
             {
-                User newUsertest = newUser.ShowDialog();
-                users.Add(newUsertest);
-                using (StreamWriter w = File.AppendText("Users.dat"))//new User
+                try
                 {
-                    Log(newUsertest, w);
-                    w.Close();
+                    User newUsertest = newUser.ShowDialog();
+                    if (users == null)
+                    {
+                        users = new SelfBalancedTree.AVLTree<User>();
+                    }
+                    users.Add(newUsertest);
+                    using (StreamWriter w = File.AppendText("Users.dat"))//new User
+                    {
+                        Log(newUsertest, w);
+                        w.Close();
+                    }
+                }
+                catch
+                {
                 }
             }
             else if (choice == 1)//print time sheet
@@ -617,7 +628,25 @@ namespace WindowsFormsApplication1
 
         private void Exit(object sender, FormClosingEventArgs e)
         {
+            string TEMP_FILE_NAME = "temp.dat";
+            //if (File.Exists(USER_FILE_NAME))
+            {
+                FileStream fsOut = new FileStream(TEMP_FILE_NAME, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
 
+                using (StreamWriter sr = new StreamWriter(fsOut))
+                {
+                    User current;
+
+                    while (currentlyIn.GetMax(out current))
+                    {
+                        string line = "";
+                        current.getID(ref line);
+                        sr.WriteLine(line);
+                        currentlyIn.Delete(current);
+                    }
+                }
+                fsOut.Close();
+            }
         }
     }
 
@@ -759,7 +788,7 @@ namespace WindowsFormsApplication1
         }
     }
 
-    static class newUser
+    class newUser
     {
         public static User ShowDialog()
         {
@@ -784,6 +813,9 @@ namespace WindowsFormsApplication1
             Label textLabel5 = new Label() { Left = 250, Top = 20, Text = "Is a Student", Height = 15 };
             CheckBox isStudent = new CheckBox() { Left = 250, Top = 35 };
 
+            Label textLabel6 = new Label() { Left = 250, Top =40, Text = "Is an Administator", Height = 15 };
+            CheckBox isAdmin = new CheckBox() { Left = 250, Top = 55 };
+
             Button OK = new Button() { Text = "OK", Left = 50, Width = 200, Top = 165 };
             OK.Click += (sender, e) =>
             {
@@ -797,6 +829,10 @@ namespace WindowsFormsApplication1
                     result.setId(HNumber.Text);
                     result.setRfid(RFIDtag.Text);
                     result.setStudent((isStudent.Checked));
+                    if (isAdmin.Checked)
+                    {
+                        result.setAdmin();
+                    }
                     prompt.Close();
                 }
                 else { prompt.Controls.Add(error); }
@@ -817,10 +853,20 @@ namespace WindowsFormsApplication1
             prompt.Controls.Add(textLabel5);
             prompt.Controls.Add(isStudent);
 
+            prompt.Controls.Add(isAdmin);
+            prompt.Controls.Add(textLabel6);
+
             prompt.Controls.Add(OK);
             prompt.ShowDialog();
+            
             return result;
         }
+        private void Exit(object sender, FormClosingEventArgs e)
+        {
+            Exception noUser = new Exception();
+            throw noUser;
+        }
+        
     }
 
     public static class Login

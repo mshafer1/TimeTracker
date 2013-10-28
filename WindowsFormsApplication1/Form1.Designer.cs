@@ -84,7 +84,6 @@
             this.Controls.Add(this.IDField);
             this.Controls.Add(this.OK);
             this.Name = "TutorTrack";
-            this.Text = "Form1";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Exit);
             this.ResumeLayout(false);
             this.PerformLayout();
