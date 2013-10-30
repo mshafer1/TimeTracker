@@ -24,6 +24,7 @@ namespace WindowsFormsApplication1
             //LOG_FILE_NAME = LOG_FILE_NAME.Replace("/", ".");
             LOG_FILE_NAME = "log";
             LOG_FILE_NAME += ".csv";
+            string TEMP_FILE_NAME = "temp.dat";
             if (File.Exists(USER_FILE_NAME))
             {
                 FileStream fsIn = new FileStream(USER_FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.None);
@@ -63,20 +64,46 @@ namespace WindowsFormsApplication1
                 }
                 fsIn.Close();
             }
+            
+           if (File.Exists(TEMP_FILE_NAME))
+            {
+                //TEMP_FILE_NAME = "temp.dat";
+                FileStream fsIn = new FileStream(TEMP_FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.None);
+
+                using (StreamReader srIn = new StreamReader(fsIn))
+                {
+                    User currentUser = new User();
+                    string input;
+                    input = srIn.ReadLine();
+                    while (input != null)
+                    {
+                        User temp = new User();
+                        temp.setId(input);
+                        getUser(ref temp);
+                        input = srIn.ReadLine();
+                        temp.setTimeIn(input);
+                        currentlyIn.Add(temp);
+                        input = srIn.ReadLine();
+                    }
+                }
+                fsIn.Close();
+            }
             else
             {
                 runAdmin();
+                IDField.Text = "";
                 //MessageBox.Show("No User Initialized", "User list not found", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk);//change to initialization
             }
         }
 
         private void OK_Click(object sender, EventArgs e)
         {
+            
             DateTime currentTime = new DateTime();
             currentTime = DateTime.Now;
             User current = new User();
             setCurrent(ref current);
-
+            IDField.Text = "";
 
             if (users != null && users.slowContains(current))//slow search
             {
@@ -556,6 +583,7 @@ namespace WindowsFormsApplication1
 
         private void enter(object sender, KeyPressEventArgs e)
         {
+            char c = e.KeyChar;
             if (e.KeyChar == '\r')
             {
                 DateTime currentTime = new DateTime();
@@ -623,6 +651,7 @@ namespace WindowsFormsApplication1
 
                     }
                 }
+                IDField.Text = "";
             }
         }
 
@@ -642,6 +671,7 @@ namespace WindowsFormsApplication1
                         string line = "";
                         current.getID(ref line);
                         sr.WriteLine(line);
+                        sr.WriteLine(current.timeIn.ToShortTimeString());
                         currentlyIn.Delete(current);
                     }
                 }
@@ -688,6 +718,29 @@ namespace WindowsFormsApplication1
         public void setTimeIn(DateTime newTimeIn)
         {
             timeIn = newTimeIn;
+        }
+        public void setTimeIn(string newTimeIn)
+        {
+            int hours = (newTimeIn.Substring(0, newTimeIn.IndexOf(':')))[0];
+           hours = (hours -'0');
+           if (newTimeIn.IndexOf(':') == 2)
+           {
+               hours *= 10;
+               hours += ((newTimeIn.Substring(0, newTimeIn.IndexOf(':')))[1] - '0');
+           }
+            int minutes = ((newTimeIn.Substring(newTimeIn.IndexOf(':')+1,1))[0]-'0')*10;
+            minutes += ((newTimeIn.Substring(newTimeIn.IndexOf(':') + 2, 1))[0]-'0') % 10;
+            timeIn = DateTime.Now;
+
+            timeIn.AddMinutes(minutes - timeIn.Minute);
+
+           // if (timeIn.ToShortTimeString().Substring(timeIn.ToShortTimeString().IndexOf(' ')) == newTimeIn.Substring(newTimeIn.IndexOf(' ')))
+            timeIn.AddHours(0-timeIn.Hour + hours);
+            //timeIn.AddMinutes(minutes - timeIn.Minute);
+            //while (timeIn.Hour < hours)
+            {
+                
+            }
         }
         public void setTimeOut(DateTime newTimeOut)
         {
@@ -792,6 +845,7 @@ namespace WindowsFormsApplication1
     {
         public static User ShowDialog()
         {
+            
             User result = new User();
             Form prompt = new Form();
             prompt.Width = 600;
@@ -866,7 +920,6 @@ namespace WindowsFormsApplication1
             Exception noUser = new Exception();
             throw noUser;
         }
-        
     }
 
     public static class Login
