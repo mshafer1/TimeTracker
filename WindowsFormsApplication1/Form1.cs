@@ -241,9 +241,10 @@ namespace WindowsFormsApplication1
 
         private void runAdmin()
         {
-            int choice = AdminPrompt.ShowDialog("Logged in as Admin", "TutorTrack")[0] - '0';
+            int choice = -1;
+            choice = AdminPrompt.ShowDialog("Logged in as Admin", "TutorTrack");
             // DialogResult dialogResult = MessageBox.Show(\nWould you like to add a new user?", "TutorTrack", MessageBoxButtons.YesNo);
-            if (choice == 0)//new user
+            if (choice == 1)//new user
             {
                 try
                 {
@@ -263,7 +264,7 @@ namespace WindowsFormsApplication1
                 {
                 }
             }
-            else if (choice == 1)//print time sheet
+            else if (choice == 2)//print time sheet
             {
                 using (FileStream fsIn = new FileStream(LOG_FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.None))
                 {
@@ -322,7 +323,7 @@ namespace WindowsFormsApplication1
                     }
                 }
             }
-            else if (choice == 2)
+            else if (choice == 3)
             {
             }
 
@@ -814,7 +815,7 @@ namespace WindowsFormsApplication1
 
     public static class AdminPrompt
     {
-        public static string ShowDialog(string text, string caption)
+        public static int ShowDialog(string text, string caption)
         {
             Form prompt = new Form();
             prompt.Width = 300;
@@ -824,103 +825,24 @@ namespace WindowsFormsApplication1
             Label textLabel = new Label() { Left = 40, Top = 10, Text = text };
             //TextBox textBox = new TextBox() { Left = 50, Top = 50, Width = 400 };
             Button newUser = new Button() { Text = "New User", Left = 50, Width = 100, Top = 30 };
-            newUser.Click += (sender, e) => { prompt.Close(); choice = 0; };
+            newUser.Click += (sender, e) => { prompt.Close(); choice = 1; };
 
             Button printTimeSheet = new Button() { Text = "Print Time Sheet", Left = 50, Width = 100, Top = 60 };
-            printTimeSheet.Click += (sender, e) => { prompt.Close(); choice = 1; };
+            printTimeSheet.Click += (sender, e) => { prompt.Close(); choice = 2; };
 
             Button viewLog = new Button() { Text = "View Log", Left = 50, Width = 100, Top = 90 };
-            viewLog.Click += (sender, e) => { prompt.Close(); choice = 2; };
+            viewLog.Click += (sender, e) => { prompt.Close(); choice = 3; };
 
             prompt.Controls.Add(newUser);
             prompt.Controls.Add(textLabel);
             prompt.Controls.Add(printTimeSheet);
             prompt.Controls.Add(viewLog);
             prompt.ShowDialog();
-            return choice.ToString();
+            return choice;
         }
     }
 
-    class newUser
-    {
-        public static User ShowDialog()
-        {
-            
-            User result = new User();
-            Form prompt = new Form();
-            prompt.Width = 600;
-            prompt.Height = 250;
-            prompt.Text = "Add new User";
-            Label error = new Label() { Left = 40, Top = 5, Text = "Please enter First and Last Names and H number", Width = 500 };
-            Label textLabel = new Label() { Left = 40, Top = 20, Text = "New User's First Name", Height = 15 };
-            TextBox FirstName = new TextBox() { Left = 40, Top = 35, Width = 200 };
-
-            Label textLabel2 = new Label() { Left = 40, Top = 55, Text = "New User's Last Name", Height = 15 };
-            TextBox LastName = new TextBox() { Left = 40, Top = 70, Width = 200 };
-
-            Label textLabel3 = new Label() { Left = 40, Top = 90, Text = "New User's H number", Height = 15 };
-            TextBox HNumber = new TextBox() { Left = 40, Top = 105, Width = 200 };
-
-            Label textLabel4 = new Label() { Left = 40, Top = 125, Text = "New User's RFID tag (if available)", Height = 15 };
-            TextBox RFIDtag = new TextBox() { Left = 40, Top = 140, Width = 200 };
-
-            Label textLabel5 = new Label() { Left = 250, Top = 20, Text = "Is a Student", Height = 15 };
-            CheckBox isStudent = new CheckBox() { Left = 250, Top = 35 };
-
-            Label textLabel6 = new Label() { Left = 250, Top =40, Text = "Is an Administator", Height = 15 };
-            CheckBox isAdmin = new CheckBox() { Left = 250, Top = 55 };
-
-            Button OK = new Button() { Text = "OK", Left = 50, Width = 200, Top = 165 };
-            OK.Click += (sender, e) =>
-            {
-                if (FirstName.Text.Length > 0 && LastName.Text.Length > 0 && HNumber.Text.Length > 0)
-                {
-                    string name = "";
-                    name = LastName.Text;
-                    name += ", ";
-                    name += FirstName.Text;
-                    result.setName(name);
-                    result.setId(HNumber.Text);
-                    result.setRfid(RFIDtag.Text);
-                    result.setStudent((isStudent.Checked));
-                    if (isAdmin.Checked)
-                    {
-                        result.setAdmin();
-                    }
-                    prompt.Close();
-                }
-                else { prompt.Controls.Add(error); }
-            };
-
-            prompt.Controls.Add(textLabel);
-            prompt.Controls.Add(FirstName);
-
-            prompt.Controls.Add(textLabel2);
-            prompt.Controls.Add(LastName);
-
-            prompt.Controls.Add(textLabel3);
-            prompt.Controls.Add(HNumber);
-
-            prompt.Controls.Add(textLabel4);
-            prompt.Controls.Add(RFIDtag);
-
-            prompt.Controls.Add(textLabel5);
-            prompt.Controls.Add(isStudent);
-
-            prompt.Controls.Add(isAdmin);
-            prompt.Controls.Add(textLabel6);
-
-            prompt.Controls.Add(OK);
-            prompt.ShowDialog();
-            
-            return result;
-        }
-        private void Exit(object sender, FormClosingEventArgs e)
-        {
-            Exception noUser = new Exception();
-            throw noUser;
-        }
-    }
+   
 
     public static class Login
     {
