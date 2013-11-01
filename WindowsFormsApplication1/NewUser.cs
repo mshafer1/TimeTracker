@@ -12,11 +12,16 @@ namespace WindowsFormsApplication1
 {
     public partial class NewUser : Form
     {
+        public static User ShowDialog()
+        {
+            throw new Exception();
+        }
+
         public NewUser()
         {
             InitializeComponent();
         }
-        
+
         public User get()
         {
             User result = new User();
