@@ -121,7 +121,7 @@ namespace WindowsFormsApplication1
                         {
                             User checker = new User();
 
-                            checker.setId(Login.ShowDialog());
+                            checker.setId(NewUser.ShowDialog());
 
                             getUser(ref checker);
                             if (users.Contains(checker) && checker.getStudent())
@@ -609,7 +609,7 @@ namespace WindowsFormsApplication1
                             {
                                 User checker = new User();
 
-                                checker.setId(Login.ShowDialog());
+                                checker.setId(NewUser.ShowDialog());
 
                                 getUser(ref checker);
                                 if (users.Contains(checker) && checker.getStudent())
@@ -844,27 +844,27 @@ namespace WindowsFormsApplication1
 
    
 
-    public static class Login
-    {
-        public static string ShowDialog()
-        {
-            string result = "";
-            Form prompt = new Form();
-            prompt.Width = 300;
-            prompt.Height = 200;
-            prompt.Text = "Student Login";
+    //public static class NewUser
+    //{
+    //    public static string ShowDialog()
+    //    {
+    //        string result = "";
+    //        Form prompt = new Form();
+    //        prompt.Width = 300;
+    //        prompt.Height = 200;
+    //        prompt.Text = "Student Login";
 
-            Label textLabel = new Label() { Left = 40, Top = 10, Text = "ID", Height = 15 };
-            TextBox textBox = new TextBox() { Left = 40, Top = 25, Width = 200 };
+    //        Label textLabel = new Label() { Left = 40, Top = 10, Text = "ID", Height = 15 };
+    //        TextBox textBox = new TextBox() { Left = 40, Top = 25, Width = 200 };
 
-            Button OK = new Button() { Text = "OK", Left = 50, Width = 50, Top = 40 };
-            OK.Click += (sender, e) => { result = textBox.Text; prompt.Close(); };
+    //        Button OK = new Button() { Text = "OK", Left = 50, Width = 50, Top = 40 };
+    //        OK.Click += (sender, e) => { result = textBox.Text; prompt.Close(); };
 
-            prompt.Controls.Add(textBox);
-            prompt.Controls.Add(textLabel);
-            prompt.Controls.Add(OK);
-            prompt.ShowDialog();
-            return result;
-        }
-    }
+    //        prompt.Controls.Add(textBox);
+    //        prompt.Controls.Add(textLabel);
+    //        prompt.Controls.Add(OK);
+    //        prompt.ShowDialog();
+    //        return result;
+    //    }
+    //}
 }
