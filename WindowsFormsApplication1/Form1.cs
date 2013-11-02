@@ -64,8 +64,8 @@ namespace WindowsFormsApplication1
                 }
                 fsIn.Close();
             }
-            
-           if (File.Exists(TEMP_FILE_NAME))
+
+            if (File.Exists(TEMP_FILE_NAME))
             {
                 //TEMP_FILE_NAME = "temp.dat";
                 FileStream fsIn = new FileStream(TEMP_FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.None);
@@ -98,7 +98,7 @@ namespace WindowsFormsApplication1
 
         private void OK_Click(object sender, EventArgs e)
         {
-            
+
             DateTime currentTime = new DateTime();
             currentTime = DateTime.Now;
             User current = new User();
@@ -682,7 +682,7 @@ namespace WindowsFormsApplication1
 
 
 
-    class User : IComparable<User>
+    class Tutor : IComparable<Tutor>
     {
         public void setWorkTime()
         {
@@ -722,25 +722,25 @@ namespace WindowsFormsApplication1
         public void setTimeIn(string newTimeIn)
         {
             int hours = (newTimeIn.Substring(0, newTimeIn.IndexOf(':')))[0];
-           hours = (hours -'0');
-           if (newTimeIn.IndexOf(':') == 2)
-           {
-               hours *= 10;
-               hours += ((newTimeIn.Substring(0, newTimeIn.IndexOf(':')))[1] - '0');
-           }
-            int minutes = ((newTimeIn.Substring(newTimeIn.IndexOf(':')+1,1))[0]-'0')*10;
-            minutes += ((newTimeIn.Substring(newTimeIn.IndexOf(':') + 2, 1))[0]-'0') % 10;
+            hours = (hours - '0');
+            if (newTimeIn.IndexOf(':') == 2)
+            {
+                hours *= 10;
+                hours += ((newTimeIn.Substring(0, newTimeIn.IndexOf(':')))[1] - '0');
+            }
+            int minutes = ((newTimeIn.Substring(newTimeIn.IndexOf(':') + 1, 1))[0] - '0') * 10;
+            minutes += ((newTimeIn.Substring(newTimeIn.IndexOf(':') + 2, 1))[0] - '0') % 10;
             timeIn = DateTime.Now;
 
             timeIn.AddMinutes(minutes - timeIn.Minute);
 
-           // if (timeIn.ToShortTimeString().Substring(timeIn.ToShortTimeString().IndexOf(' ')) == newTimeIn.Substring(newTimeIn.IndexOf(' ')))
-            timeIn.AddHours(0-timeIn.Hour + hours);
+            // if (timeIn.ToShortTimeString().Substring(timeIn.ToShortTimeString().IndexOf(' ')) == newTimeIn.Substring(newTimeIn.IndexOf(' ')))
+            timeIn.AddHours(0 - timeIn.Hour + hours);
             //timeIn.AddMinutes(minutes - timeIn.Minute);
             //while (timeIn.Hour < hours)
-            {
-                
-            }
+            //{
+
+            //}
         }
         public void setTimeOut(DateTime newTimeOut)
         {
@@ -762,39 +762,11 @@ namespace WindowsFormsApplication1
         {
             newRfid = rfid;
         }
-        public void setAdmin()
-        {
-            Admin = true;
-        }
-        public void notAdmin()
-        {
-            Admin = false;
-        }
-        public void controlAdmin(bool set)
-        {
-            Admin = set;
-        }
-        public bool isAdmin()
-        {
-            return Admin;
-        }
         public void setStudent(string check)
         {
-            if (check == "STUDENT")
-            {
-                isStudent = true;
-            }
+            
         }
-        public void setStudent(bool check)
-        {
-            isStudent = check;
-        }
-        public bool getStudent()
-        {
-            return isStudent;
-        }
-
-        public int CompareTo(User input)
+        public int CompareTo(Tutor input)
         {
             int result;
             if (this.ID == input.ID || this.name == input.ID || this.rfid == input.ID)
@@ -807,11 +779,12 @@ namespace WindowsFormsApplication1
 
         }
         private string name, ID, rfid;
-        public int workHours, workMinutes;
-        public DateTime timeIn, timeOut;
-        bool Admin, isStudent;
+        private int workHours, workMinutes;
+        private DateTime timeIn, timeOut;
+        private List<KeyValuePair<Student, Class>> clients;
+        private List<Appointment> appointments;
+        private List<KeyValuePair<DayOfWeek,List<KeyValuePair<DateTime,DateTime>>>> schedule;
     }
-
     public static class AdminPrompt
     {
         public static string ShowDialog(string text, string caption)
@@ -840,109 +813,24 @@ namespace WindowsFormsApplication1
             return choice.ToString();
         }
     }
+    //public static string ShowDialog()
+    //{
+    //    string result = "";
+    //    Form prompt = new Form();
+    //    prompt.Width = 300;
+    //    prompt.Height = 200;
+    //    prompt.Text = "Student Login";
 
-    class newUser
-    {
-        public static User ShowDialog()
-        {
-            
-            User result = new User();
-            Form prompt = new Form();
-            prompt.Width = 600;
-            prompt.Height = 250;
-            prompt.Text = "Add new User";
-            Label error = new Label() { Left = 40, Top = 5, Text = "Please enter First and Last Names and H number", Width = 500 };
-            Label textLabel = new Label() { Left = 40, Top = 20, Text = "New User's First Name", Height = 15 };
-            TextBox FirstName = new TextBox() { Left = 40, Top = 35, Width = 200 };
+    //    Label textLabel = new Label() { Left = 40, Top = 10, Text = "ID", Height = 15 };
+    //    TextBox textBox = new TextBox() { Left = 40, Top = 25, Width = 200 };
 
-            Label textLabel2 = new Label() { Left = 40, Top = 55, Text = "New User's Last Name", Height = 15 };
-            TextBox LastName = new TextBox() { Left = 40, Top = 70, Width = 200 };
+    //    Button OK = new Button() { Text = "OK", Left = 50, Width = 50, Top = 40 };
+    //    OK.Click += (sender, e) => { result = textBox.Text; prompt.Close(); };
 
-            Label textLabel3 = new Label() { Left = 40, Top = 90, Text = "New User's H number", Height = 15 };
-            TextBox HNumber = new TextBox() { Left = 40, Top = 105, Width = 200 };
-
-            Label textLabel4 = new Label() { Left = 40, Top = 125, Text = "New User's RFID tag (if available)", Height = 15 };
-            TextBox RFIDtag = new TextBox() { Left = 40, Top = 140, Width = 200 };
-
-            Label textLabel5 = new Label() { Left = 250, Top = 20, Text = "Is a Student", Height = 15 };
-            CheckBox isStudent = new CheckBox() { Left = 250, Top = 35 };
-
-            Label textLabel6 = new Label() { Left = 250, Top =40, Text = "Is an Administator", Height = 15 };
-            CheckBox isAdmin = new CheckBox() { Left = 250, Top = 55 };
-
-            Button OK = new Button() { Text = "OK", Left = 50, Width = 200, Top = 165 };
-            OK.Click += (sender, e) =>
-            {
-                if (FirstName.Text.Length > 0 && LastName.Text.Length > 0 && HNumber.Text.Length > 0)
-                {
-                    string name = "";
-                    name = LastName.Text;
-                    name += ", ";
-                    name += FirstName.Text;
-                    result.setName(name);
-                    result.setId(HNumber.Text);
-                    result.setRfid(RFIDtag.Text);
-                    result.setStudent((isStudent.Checked));
-                    if (isAdmin.Checked)
-                    {
-                        result.setAdmin();
-                    }
-                    prompt.Close();
-                }
-                else { prompt.Controls.Add(error); }
-            };
-
-            prompt.Controls.Add(textLabel);
-            prompt.Controls.Add(FirstName);
-
-            prompt.Controls.Add(textLabel2);
-            prompt.Controls.Add(LastName);
-
-            prompt.Controls.Add(textLabel3);
-            prompt.Controls.Add(HNumber);
-
-            prompt.Controls.Add(textLabel4);
-            prompt.Controls.Add(RFIDtag);
-
-            prompt.Controls.Add(textLabel5);
-            prompt.Controls.Add(isStudent);
-
-            prompt.Controls.Add(isAdmin);
-            prompt.Controls.Add(textLabel6);
-
-            prompt.Controls.Add(OK);
-            prompt.ShowDialog();
-            
-            return result;
-        }
-        private void Exit(object sender, FormClosingEventArgs e)
-        {
-            Exception noUser = new Exception();
-            throw noUser;
-        }
-    }
-
-    public static class Login
-    {
-        public static string ShowDialog()
-        {
-            string result = "";
-            Form prompt = new Form();
-            prompt.Width = 300;
-            prompt.Height = 200;
-            prompt.Text = "Student Login";
-
-            Label textLabel = new Label() { Left = 40, Top = 10, Text = "ID", Height = 15 };
-            TextBox textBox = new TextBox() { Left = 40, Top = 25, Width = 200 };
-
-            Button OK = new Button() { Text = "OK", Left = 50, Width = 50, Top = 40 };
-            OK.Click += (sender, e) => { result = textBox.Text; prompt.Close(); };
-
-            prompt.Controls.Add(textBox);
-            prompt.Controls.Add(textLabel);
-            prompt.Controls.Add(OK);
-            prompt.ShowDialog();
-            return result;
-        }
-    }
+    //    prompt.Controls.Add(textBox);
+    //    prompt.Controls.Add(textLabel);
+    //    prompt.Controls.Add(OK);
+    //    prompt.ShowDialog();
+    //    return result;
+    //}
 }
