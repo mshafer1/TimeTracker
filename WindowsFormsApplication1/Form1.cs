@@ -131,7 +131,7 @@ namespace WindowsFormsApplication1
                         {
                             User checker = new User();
 
-                            checker.setId(Login.ShowDialog());
+                            checker.setId(NewUser.ShowDialog());
 
                             getUser(ref checker);
                             if (users.Contains(checker) && checker.getStudent())
@@ -239,9 +239,10 @@ namespace WindowsFormsApplication1
 
         private void runAdmin()
         {
-            int choice = AdminPrompt.ShowDialog("Logged in as Admin", "TutorTrack")[0] - '0';
+            int choice = -1;
+            choice = AdminPrompt.ShowDialog("Logged in as Admin", "TutorTrack");
             // DialogResult dialogResult = MessageBox.Show(\nWould you like to add a new user?", "TutorTrack", MessageBoxButtons.YesNo);
-            if (choice == 0)//new user
+            if (choice == 1)//new user
             {
                 try
                 {
@@ -261,7 +262,7 @@ namespace WindowsFormsApplication1
                 {
                 }
             }
-            else if (choice == 1)//print time sheet
+            else if (choice == 2)//print time sheet
             {
                 using (FileStream fsIn = new FileStream(LOG_FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.None))
                 {
@@ -320,7 +321,7 @@ namespace WindowsFormsApplication1
                     }
                 }
             }
-            else if (choice == 2)
+            else if (choice == 3)
             {
             }
 
@@ -606,7 +607,7 @@ namespace WindowsFormsApplication1
                             {
                                 User checker = new User();
 
-                                checker.setId(Login.ShowDialog());
+                                checker.setId(NewUser.ShowDialog());
 
                                 getUser(ref checker);
                                 if (users.Contains(checker) && checker.getStudent())
@@ -677,6 +678,7 @@ namespace WindowsFormsApplication1
             }
         }
     }
+<<<<<<< HEAD
     //public static class AdminPrompt
     //{
     //    public static string ShowDialog(string text, string caption)
@@ -725,4 +727,193 @@ namespace WindowsFormsApplication1
     //    prompt.ShowDialog();
     //    return result;
     //}
+=======
+
+
+
+    class User : IComparable<User>
+    {
+        public void setWorkTime()
+        {
+            workHours = timeOut.Hour - timeIn.Hour;
+            workMinutes = timeOut.Minute - timeIn.Minute;
+            normalizeTime();
+        }
+        public void normalizeTime()
+        {
+            while (workMinutes >= 60)
+            {
+                workHours++;
+                workMinutes -= 60;
+            }
+            while (workMinutes < 0)
+            {
+                workHours--;
+                workMinutes += 60;
+            }
+        }
+        public void getName(ref String nameGet)
+        {
+            nameGet = name;
+        }
+        public void setName(String newName)
+        {
+            name = newName;
+        }
+        public void setId(String newId)
+        {
+            ID = newId;
+        }
+        public void setTimeIn(DateTime newTimeIn)
+        {
+            timeIn = newTimeIn;
+        }
+        public void setTimeIn(string newTimeIn)
+        {
+            int hours = (newTimeIn.Substring(0, newTimeIn.IndexOf(':')))[0];
+           hours = (hours -'0');
+           if (newTimeIn.IndexOf(':') == 2)
+           {
+               hours *= 10;
+               hours += ((newTimeIn.Substring(0, newTimeIn.IndexOf(':')))[1] - '0');
+           }
+            int minutes = ((newTimeIn.Substring(newTimeIn.IndexOf(':')+1,1))[0]-'0')*10;
+            minutes += ((newTimeIn.Substring(newTimeIn.IndexOf(':') + 2, 1))[0]-'0') % 10;
+            timeIn = DateTime.Now;
+
+            timeIn.AddMinutes(minutes - timeIn.Minute);
+
+           // if (timeIn.ToShortTimeString().Substring(timeIn.ToShortTimeString().IndexOf(' ')) == newTimeIn.Substring(newTimeIn.IndexOf(' ')))
+            timeIn.AddHours(0-timeIn.Hour + hours);
+            //timeIn.AddMinutes(minutes - timeIn.Minute);
+            //while (timeIn.Hour < hours)
+            {
+                
+            }
+        }
+        public void setTimeOut(DateTime newTimeOut)
+        {
+            timeOut = newTimeOut;
+        }
+        public void getTime(ref long time)
+        {
+            time = timeOut.Ticks - timeIn.Ticks;
+        }
+        public void getID(ref String outputID)
+        {
+            outputID = ID;
+        }
+        public void setRfid(string newRfid)
+        {
+            rfid = newRfid;
+        }
+        public void getRfid(ref string newRfid)
+        {
+            newRfid = rfid;
+        }
+        public void setAdmin()
+        {
+            Admin = true;
+        }
+        public void notAdmin()
+        {
+            Admin = false;
+        }
+        public void controlAdmin(bool set)
+        {
+            Admin = set;
+        }
+        public bool isAdmin()
+        {
+            return Admin;
+        }
+        public void setStudent(string check)
+        {
+            if (check == "STUDENT")
+            {
+                isStudent = true;
+            }
+        }
+        public void setStudent(bool check)
+        {
+            isStudent = check;
+        }
+        public bool getStudent()
+        {
+            return isStudent;
+        }
+
+        public int CompareTo(User input)
+        {
+            int result;
+            if (this.ID == input.ID || this.name == input.ID || this.rfid == input.ID)
+            {
+                result = 0;
+            }
+            else result = String.Compare(this.ID, input.ID);
+            return result;
+
+
+        }
+        private string name, ID, rfid;
+        public int workHours, workMinutes;
+        public DateTime timeIn, timeOut;
+        bool Admin, isStudent;
+    }
+
+    public static class AdminPrompt
+    {
+        public static int ShowDialog(string text, string caption)
+        {
+            Form prompt = new Form();
+            prompt.Width = 300;
+            prompt.Height = 200;
+            prompt.Text = caption;
+            int choice = 0;
+            Label textLabel = new Label() { Left = 40, Top = 10, Text = text };
+            //TextBox textBox = new TextBox() { Left = 50, Top = 50, Width = 400 };
+            Button newUser = new Button() { Text = "New User", Left = 50, Width = 100, Top = 30 };
+            newUser.Click += (sender, e) => { prompt.Close(); choice = 1; };
+
+            Button printTimeSheet = new Button() { Text = "Print Time Sheet", Left = 50, Width = 100, Top = 60 };
+            printTimeSheet.Click += (sender, e) => { prompt.Close(); choice = 2; };
+
+            Button viewLog = new Button() { Text = "View Log", Left = 50, Width = 100, Top = 90 };
+            viewLog.Click += (sender, e) => { prompt.Close(); choice = 3; };
+
+            prompt.Controls.Add(newUser);
+            prompt.Controls.Add(textLabel);
+            prompt.Controls.Add(printTimeSheet);
+            prompt.Controls.Add(viewLog);
+            prompt.ShowDialog();
+            return choice;
+        }
+    }
+
+   
+
+    //public static class NewUser
+    //{
+    //    public static string ShowDialog()
+    //    {
+    //        string result = "";
+    //        Form prompt = new Form();
+    //        prompt.Width = 300;
+    //        prompt.Height = 200;
+    //        prompt.Text = "Student Login";
+
+    //        Label textLabel = new Label() { Left = 40, Top = 10, Text = "ID", Height = 15 };
+    //        TextBox textBox = new TextBox() { Left = 40, Top = 25, Width = 200 };
+
+    //        Button OK = new Button() { Text = "OK", Left = 50, Width = 50, Top = 40 };
+    //        OK.Click += (sender, e) => { result = textBox.Text; prompt.Close(); };
+
+    //        prompt.Controls.Add(textBox);
+    //        prompt.Controls.Add(textLabel);
+    //        prompt.Controls.Add(OK);
+    //        prompt.ShowDialog();
+    //        return result;
+    //    }
+    //}
+>>>>>>> origin/master
 }
