@@ -28,13 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TutorTrack));
             this.IDField = new System.Windows.Forms.TextBox();
             this.OK = new System.Windows.Forms.Button();
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.printDocument1 = new System.Drawing.Printing.PrintDocument();
-            this.printForm1 = new Microsoft.VisualBasic.PowerPacks.Printing.PrintForm(this.components);
             this.SuspendLayout();
             // 
             // IDField
@@ -59,23 +54,6 @@
             this.OK.UseVisualStyleBackColor = true;
             this.OK.Click += new System.EventHandler(this.OK_Click);
             // 
-            // openFileDialog1
-            // 
-            this.openFileDialog1.FileName = "openFileDialog1";
-            this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
-            // 
-            // printDocument1
-            // 
-            this.printDocument1.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(this.printDocument1_PrintPage);
-            // 
-            // printForm1
-            // 
-            this.printForm1.DocumentName = "document";
-            this.printForm1.Form = this;
-            this.printForm1.PrintAction = System.Drawing.Printing.PrintAction.PrintToPrinter;
-            this.printForm1.PrinterSettings = ((System.Drawing.Printing.PrinterSettings)(resources.GetObject("printForm1.PrinterSettings")));
-            this.printForm1.PrintFileName = null;
-            // 
             // TutorTrack
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -94,9 +72,6 @@
 
         private System.Windows.Forms.TextBox IDField;
         private System.Windows.Forms.Button OK;
-        private System.Windows.Forms.OpenFileDialog openFileDialog1;
-        private System.Drawing.Printing.PrintDocument printDocument1;
-        private Microsoft.VisualBasic.PowerPacks.Printing.PrintForm printForm1;
     }
 }
 

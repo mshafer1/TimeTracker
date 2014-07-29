@@ -20,11 +20,17 @@ namespace WindowsFormsApplication1
             InitializeComponent();
             DateTime current = DateTime.Now;
 
+            #region getTree instances
+
+            currentlyIn = singleInstance<SelfBalancedTree.AVLTree<Login>>.getInstance();
+
+            #endregion
+
             //LOG_FILE_NAME = current.ToShortDateString();
             //LOG_FILE_NAME = LOG_FILE_NAME.Replace("/", ".");
             LOG_FILE_NAME = "log";
             LOG_FILE_NAME += ".csv";
-            string TEMP_FILE_NAME = "temp.dat";
+            //string TEMP_FILE_NAME = "temp.dat";
             if (File.Exists(USER_FILE_NAME))
             {
                 FileStream fsIn = new FileStream(USER_FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.None);
@@ -36,15 +42,17 @@ namespace WindowsFormsApplication1
                     // While not at the end of the file, read lines from the file. 
                     while (input == "TUTOR" || input == "ADMIN" || input == "STUDENT")
                     {
-                        User newUser = new User();
-                        newUser.setStudent(input);
-                        if (input == "ADMIN")
+                        bool TutorCheck = false;
+                        User newUser;
+
+                        if (input == "TUTOR")
                         {
-                            newUser.setAdmin();
+                            TutorCheck = true;
+                            newUser = new Tutor();
                         }
                         else
                         {
-                            newUser.notAdmin();
+                            newUser = new Student();
                         }
 
                         input = sr.ReadLine();
@@ -52,38 +60,40 @@ namespace WindowsFormsApplication1
 
                         input = sr.ReadLine();
                         newUser.setId(input);
-
+                        
                         input = sr.ReadLine();
+                        if (TutorCheck)
+                        {
+                            string clientName = input;
+                            string courseName = input = sr.ReadLine();
+                            Tutor currentTutor = (Tutor)newUser;
+                            while (input != "CLASS" && input != null)
+                            {
+                                currentTutor.newClient(clientName, courseName);
+                                clientName = input = sr.ReadLine();
+                                courseName = input = sr.ReadLine();
+                            }
+
+                            while(input == "CLASS")
+                            {
+                                currentTutor.addCourse(input);
+                                input = sr.ReadLine();
+                            }
+
+                            while (input == "SUNDAY" || input == "MONDAY" || input == "TUESDAY" || input == "WEDNESDAY" || input == "THURSDAY" || input == "FRIDAY" || input == "SATURDAY")
+                            {
+                                string startTime = sr.ReadLine();
+                                string endTime = sr.ReadLine();
+                                currentTutor.addToSchedule(input, startTime, endTime);
+                                input = sr.ReadLine();
+                            } 
+                        }
                         if (input != "TUTOR" && input != null && input != "ADMIN" && input != "STUDENT")
                         {
                             newUser.setRfid(input);
                             input = sr.ReadLine();
                         }
                         users.Add(newUser);
-                    }
-                }
-                fsIn.Close();
-            }
-
-            if (File.Exists(TEMP_FILE_NAME))
-            {
-                //TEMP_FILE_NAME = "temp.dat";
-                FileStream fsIn = new FileStream(TEMP_FILE_NAME, FileMode.Open, FileAccess.Read, FileShare.None);
-
-                using (StreamReader srIn = new StreamReader(fsIn))
-                {
-                    User currentUser = new User();
-                    string input;
-                    input = srIn.ReadLine();
-                    while (input != null)
-                    {
-                        User temp = new User();
-                        temp.setId(input);
-                        getUser(ref temp);
-                        input = srIn.ReadLine();
-                        temp.setTimeIn(input);
-                        currentlyIn.Add(temp);
-                        input = srIn.ReadLine();
                     }
                 }
                 fsIn.Close();
@@ -108,13 +118,13 @@ namespace WindowsFormsApplication1
             if (users != null && users.slowContains(current))//slow search
             {
                 getUser(ref current);
-                if (current.isAdmin())
+                if (false)
                 {
                     runAdmin();
                 }
                 else
                 {
-
+                    currentlyIn.getInstance().Contains(current);
                     if (!currentlyIn.Contains(current))//not logged in
                     {
                         if (!(current.getStudent()))
@@ -140,7 +150,7 @@ namespace WindowsFormsApplication1
                             MessageBox.Show("Please either retry or see system administrator for help", "Client not Recognized", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk);
                         }
                     }
-                    else if (currentlyIn.Contains(current))
+                    else if (currentlyIn.Contains(new Login(current))
                     {
                         current = currentlyIn.publicSearch(current);
                         currentlyIn.Delete(current);
@@ -201,22 +211,10 @@ namespace WindowsFormsApplication1
         }
 
         public string idSearch;
-        private SelfBalancedTree.AVLTree<User> currentlyIn = new SelfBalancedTree.AVLTree<User>();
+        private SelfBalancedTree.AVLTree<Login> currentlyIn;
         private SelfBalancedTree.AVLTree<User> users;
         private const string USER_FILE_NAME = "Users.dat";
         private string LOG_FILE_NAME = "";
-
-        private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
-        {
-            // = "c:\\users\\matthew\\";
-            openFileDialog1.AddExtension = true;
-            openFileDialog1.DefaultExt = ".csv";
-        }
-
-        private void printDocument1_PrintPage(object sender, System.Drawing.Printing.PrintPageEventArgs e)
-        {
-
-        }
 
         private void setCurrent(ref User current)
         {
@@ -679,140 +677,34 @@ namespace WindowsFormsApplication1
             }
         }
     }
+    //public static class AdminPrompt
+    //{
+    //    public static string ShowDialog(string text, string caption)
+    //    {
+    //        Form prompt = new Form();
+    //        prompt.Width = 300;
+    //        prompt.Height = 200;
+    //        prompt.Text = caption;
+    //        int choice = 0;
+    //        Label textLabel = new Label() { Left = 40, Top = 10, Text = text };
+    //        //TextBox textBox = new TextBox() { Left = 50, Top = 50, Width = 400 };
+    //        Button newUser = new Button() { Text = "New User", Left = 50, Width = 100, Top = 30 };
+    //        newUser.Click += (sender, e) => { prompt.Close(); choice = 0; };
 
+    //        Button printTimeSheet = new Button() { Text = "Print Time Sheet", Left = 50, Width = 100, Top = 60 };
+    //        printTimeSheet.Click += (sender, e) => { prompt.Close(); choice = 1; };
 
+    //        Button viewLog = new Button() { Text = "View Log", Left = 50, Width = 100, Top = 90 };
+    //        viewLog.Click += (sender, e) => { prompt.Close(); choice = 2; };
 
-    class Tutor : IComparable<Tutor>
-    {
-        public void setWorkTime()
-        {
-            workHours = timeOut.Hour - timeIn.Hour;
-            workMinutes = timeOut.Minute - timeIn.Minute;
-            normalizeTime();
-        }
-        public void normalizeTime()
-        {
-            while (workMinutes >= 60)
-            {
-                workHours++;
-                workMinutes -= 60;
-            }
-            while (workMinutes < 0)
-            {
-                workHours--;
-                workMinutes += 60;
-            }
-        }
-        public void getName(ref String nameGet)
-        {
-            nameGet = name;
-        }
-        public void setName(String newName)
-        {
-            name = newName;
-        }
-        public void setId(String newId)
-        {
-            ID = newId;
-        }
-        public void setTimeIn(DateTime newTimeIn)
-        {
-            timeIn = newTimeIn;
-        }
-        public void setTimeIn(string newTimeIn)
-        {
-            int hours = (newTimeIn.Substring(0, newTimeIn.IndexOf(':')))[0];
-            hours = (hours - '0');
-            if (newTimeIn.IndexOf(':') == 2)
-            {
-                hours *= 10;
-                hours += ((newTimeIn.Substring(0, newTimeIn.IndexOf(':')))[1] - '0');
-            }
-            int minutes = ((newTimeIn.Substring(newTimeIn.IndexOf(':') + 1, 1))[0] - '0') * 10;
-            minutes += ((newTimeIn.Substring(newTimeIn.IndexOf(':') + 2, 1))[0] - '0') % 10;
-            timeIn = DateTime.Now;
-
-            timeIn.AddMinutes(minutes - timeIn.Minute);
-
-            // if (timeIn.ToShortTimeString().Substring(timeIn.ToShortTimeString().IndexOf(' ')) == newTimeIn.Substring(newTimeIn.IndexOf(' ')))
-            timeIn.AddHours(0 - timeIn.Hour + hours);
-            //timeIn.AddMinutes(minutes - timeIn.Minute);
-            //while (timeIn.Hour < hours)
-            //{
-
-            //}
-        }
-        public void setTimeOut(DateTime newTimeOut)
-        {
-            timeOut = newTimeOut;
-        }
-        public void getTime(ref long time)
-        {
-            time = timeOut.Ticks - timeIn.Ticks;
-        }
-        public void getID(ref String outputID)
-        {
-            outputID = ID;
-        }
-        public void setRfid(string newRfid)
-        {
-            rfid = newRfid;
-        }
-        public void getRfid(ref string newRfid)
-        {
-            newRfid = rfid;
-        }
-        public void setStudent(string check)
-        {
-            
-        }
-        public int CompareTo(Tutor input)
-        {
-            int result;
-            if (this.ID == input.ID || this.name == input.ID || this.rfid == input.ID)
-            {
-                result = 0;
-            }
-            else result = String.Compare(this.ID, input.ID);
-            return result;
-
-
-        }
-        private string name, ID, rfid;
-        private int workHours, workMinutes;
-        private DateTime timeIn, timeOut;
-        private List<KeyValuePair<Student, Class>> clients;
-        private List<Appointment> appointments;
-        private List<KeyValuePair<DayOfWeek,List<KeyValuePair<DateTime,DateTime>>>> schedule;
-    }
-    public static class AdminPrompt
-    {
-        public static string ShowDialog(string text, string caption)
-        {
-            Form prompt = new Form();
-            prompt.Width = 300;
-            prompt.Height = 200;
-            prompt.Text = caption;
-            int choice = 0;
-            Label textLabel = new Label() { Left = 40, Top = 10, Text = text };
-            //TextBox textBox = new TextBox() { Left = 50, Top = 50, Width = 400 };
-            Button newUser = new Button() { Text = "New User", Left = 50, Width = 100, Top = 30 };
-            newUser.Click += (sender, e) => { prompt.Close(); choice = 0; };
-
-            Button printTimeSheet = new Button() { Text = "Print Time Sheet", Left = 50, Width = 100, Top = 60 };
-            printTimeSheet.Click += (sender, e) => { prompt.Close(); choice = 1; };
-
-            Button viewLog = new Button() { Text = "View Log", Left = 50, Width = 100, Top = 90 };
-            viewLog.Click += (sender, e) => { prompt.Close(); choice = 2; };
-
-            prompt.Controls.Add(newUser);
-            prompt.Controls.Add(textLabel);
-            prompt.Controls.Add(printTimeSheet);
-            prompt.Controls.Add(viewLog);
-            prompt.ShowDialog();
-            return choice.ToString();
-        }
-    }
+    //        prompt.Controls.Add(newUser);
+    //        prompt.Controls.Add(textLabel);
+    //        prompt.Controls.Add(printTimeSheet);
+    //        prompt.Controls.Add(viewLog);
+    //        prompt.ShowDialog();
+    //        return choice.ToString();
+    //    }
+    //}
     //public static string ShowDialog()
     //{
     //    string result = "";
